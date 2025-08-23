@@ -16,7 +16,8 @@ return new class extends Migration
             $table->string('nombre');
             $table->string('email')->unique();
             $table->string('telefono');
-            $table->string('documento');
+            $table->string('documento')->unique();
+            $table->foreignId('eps_id')->constrained('eps')->onDelete('cascade');
             $table->timestamps();
         });
     }

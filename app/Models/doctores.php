@@ -7,13 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 class doctores extends Model
 {
     protected $fillable = [
-      "nombre",
-      "especialidad",
-      "email",
-        "telefono",
+        'nombre',
+        'especialidad',
+        'email',
+        'telefono',
+        'eps_id'
     ];
 
-    public function citas(){
-        return $this->hasMany(citas::class, "doctor_id");
+    public function citas()
+    {
+        return $this->hasMany(Citas::class, 'doctor_id');
+    }
+
+    // Un doctor pertenece a una EPS
+    public function eps()
+    {
+        return $this->belongsTo(EPS::class, 'eps_id');
     }
 }

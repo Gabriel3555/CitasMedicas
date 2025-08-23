@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('doctores', function (Blueprint $table) {
+        Schema::create('eps', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre');
-            $table->string('telefono');
-            $table->string('email')->unique();
-            $table->foreignId('especialidad_id')->constrained('especialidades')->onDelete('cascade');
-            $table->foreignId('eps_id')->constrained('eps')->onDelete('cascade');
+            $table->string('nombre')->unique();
             $table->timestamps();
         });
     }
@@ -27,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('doctores');
+        Schema::dropIfExists('eps');
     }
 };

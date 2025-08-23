@@ -3,6 +3,8 @@
 use App\Http\Controllers\CitasController;
 use App\Http\Controllers\DoctoresController;
 use App\Http\Controllers\PacientesController;
+use App\Http\Controllers\EPSController;
+use App\Http\Controllers\EspecialidadesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,3 +37,17 @@ Route::put('/citas/{id}', [CitasController::class, 'update']);
 Route::delete('/citas/{id}', [CitasController::class, 'destroy']);
 Route::get('/citas/{id}', [CitasController::class, 'show']);
 Route::get('/citas/{id}/detalle', [CitasController::class, 'citaCompleta']);
+
+// Rutas EPS
+Route::get('/eps', [EPSController::class, 'index']);
+Route::post('/eps', [EPSController::class, 'store']);
+Route::put('/eps/{id}', [EPSController::class, 'update']);
+Route::delete('/eps/{id}', [EPSController::class, 'destroy']);
+Route::get('/eps/{id}', [EPSController::class, 'show']);
+
+// Rutas Especialidades
+Route::get('/especialidades', [EspecialidadesController::class, 'index']);
+Route::post('/especialidades', [EspecialidadesController::class, 'store']);
+Route::put('/especialidades/{id}', [EspecialidadesController::class, 'update']);
+Route::delete('/especialidades/{id}', [EspecialidadesController::class, 'destroy']);
+Route::get('/especialidades/{id}', [EspecialidadesController::class, 'show']);
