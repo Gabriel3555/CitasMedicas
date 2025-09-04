@@ -1,8 +1,8 @@
-🏥 Sistema de Gestión de Citas Médicas - API REST
+# 🏥 Sistema de Gestión de Citas Médicas - API REST
 
 Una API RESTful desarrollada con Laravel para la gestión de citas médicas, pacientes, doctores, EPS y especialidades.
 
-📋 Características
+# 📋 Características
 
 Autenticación JWT para acceso seguro a los endpoints
 Gestión completa de pacientes, doctores, citas, EPS y especialidades
@@ -10,7 +10,8 @@ Relaciones complejas entre entidades
 Validación de datos robusta
 Documentación Swagger/OpenAPI integrada
 Base de datos MySQL con migraciones y relaciones
-🚀 Tecnologías Utilizadas
+
+# 🚀 Tecnologías Utilizadas
 
 Laravel 12 - Framework PHP
 MySQL - Base de datos
@@ -18,7 +19,8 @@ JWT Auth - Autenticación por tokens
 Swagger/OpenAPI - Documentación de API
 Tailwind CSS - Estilos (para futuras vistas)
 Vite - Build tool para assets
-📦 Instalación
+
+# 📦 Instalación
 
 Requisitos Previos
 
@@ -71,7 +73,8 @@ Iniciar servidor
 
 bash
 php artisan serve
-🔐 Autenticación
+
+# 🔐 Autenticación
 
 La API utiliza autenticación JWT. Para acceder a los endpoints protegidos, incluye el token en el header:
 
@@ -82,9 +85,10 @@ Endpoints de Autenticación
 POST /login - Iniciar sesión
 POST /register - Registrar nuevo usuario
 POST /logout - Cerrar sesión (requiere token)
-📚 Endpoints de la API
 
-👥 Pacientes
+# 📚 Endpoints de la API
+
+## 👥 Pacientes
 
 GET /pacientes - Listar todos los pacientes
 POST /pacientes - Crear nuevo paciente
@@ -93,7 +97,8 @@ PUT /pacientes/{id} - Actualizar paciente
 DELETE /pacientes/{id} - Eliminar paciente
 GET /pacientes/{id}/citas - Citas de un paciente
 GET /pacientes/{id}/doctores - Doctores de un paciente
-🩺 Doctores
+
+## 🩺 Doctores
 
 GET /doctores - Listar todos los doctores
 POST /doctores - Crear nuevo doctor
@@ -102,7 +107,8 @@ PUT /doctores/{id} - Actualizar doctor
 DELETE /doctores/{id} - Eliminar doctor
 GET /doctores/{id}/citas - Citas de un doctor
 GET /doctores/{id}/pacientes - Pacientes de un doctor
-📅 Citas
+
+## 📅 Citas
 
 GET /citas - Listar todas las citas
 POST /citas - Crear nueva cita
@@ -110,21 +116,24 @@ GET /citas/{id} - Obtener cita específica
 PUT /citas/{id} - Actualizar cita
 DELETE /citas/{id} - Eliminar cita
 GET /citas/{id}/detalle - Detalle completo de cita (con paciente y doctor)
-🏢 EPS
+
+## 🏢 EPS
 
 GET /eps - Listar todas las EPS
 POST /eps - Crear nueva EPS
 GET /eps/{id} - Obtener EPS específica
 PUT /eps/{id} - Actualizar EPS
 DELETE /eps/{id} - Eliminar EPS
-🎯 Especialidades
+
+## 🎯 Especialidades
 
 GET /especialidades - Listar todas las especialidades
 POST /especialidades - Crear nueva especialidad
 GET /especialidades/{id} - Obtener especialidad específica
 PUT /especialidades/{id} - Actualizar especialidad
 DELETE /especialidades/{id} - Eliminar especialidad
-🗃️ Estructura de la Base de Datos
+
+## 🗃️ Estructura de la Base de Datos
 
 Tablas Principales
 
@@ -139,13 +148,14 @@ Relaciones
 Un paciente pertenece a una EPS
 Un doctor pertenece a una EPS y una especialidad
 Una cita relaciona un paciente con un doctor
-🧪 Testing
+
+## 🧪 Testing
 
 Ejecutar tests con:
 
 bash
 php artisan test
-📊 Documentación API
+## 📊 Documentación API
 
 La documentación Swagger está disponible en:
 
@@ -172,7 +182,8 @@ php artisan migrate
 
 # Ejecutar migraciones con datos de prueba
 php artisan migrate --seed
-📝 Estructura del Proyecto
+
+## 📝 Estructura del Proyecto
 
 text
 app/
@@ -194,17 +205,18 @@ app/
 database/
 ├── migrations/     # Migraciones de base de datos
 └── seeders/        # Datos de prueba
-🤝 Contribución
+## 🤝 Contribución
 
 Fork el proyecto
 Crear una rama para tu feature (git checkout -b feature/AmazingFeature)
 Commit tus cambios (git commit -m 'Add some AmazingFeature')
 Push a la rama (git push origin feature/AmazingFeature)
 Abrir un Pull Request
-📄 Licencia
+
+## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo LICENSE para más detalles.
 
-🆘 Soporte
+## 🆘 Soporte
 
 Si encuentras algún problema o tienes preguntas, por favor abre un issue en el repositorio.
