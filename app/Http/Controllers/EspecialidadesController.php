@@ -6,6 +6,7 @@ use App\Models\especialidades;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
+
 class EspecialidadesController extends Controller
 {
     public function index()

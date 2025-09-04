@@ -1,14 +1,13 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Models\citas;
+use App\Models\Cita;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-
 class CitasController extends Controller
 {
+
     public function index() {
         $citas = citas::all();
         return response()->json($citas, 200);
@@ -21,6 +20,7 @@ class CitasController extends Controller
         }
         return response()->json($cita, 200);
     }
+
 
     public function store(Request $request) {
         $validate = Validator::make($request->all(), [
@@ -61,6 +61,7 @@ class CitasController extends Controller
         $cita->update($request->all());
         return response()->json($cita, 200);
     }
+
 
     public function destroy($id) {
         $cita = citas::find($id);
