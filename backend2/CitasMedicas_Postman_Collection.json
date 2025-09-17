@@ -1,0 +1,745 @@
+{
+  "info": {
+    "name": "CitasMedicas API",
+    "description": "API for medical appointments system using Laravel and JWT authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"John Doe\",\"email\":\"john@example.com\",\"password\":\"password123\",\"password_confirmation\":\"password123\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register",
+              "host": ["{{base_url}}"],
+              "path": ["register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"john@example.com\",\"password\":\"password123\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": ["{{base_url}}"],
+              "path": ["login"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/logout",
+              "host": ["{{base_url}}"],
+              "path": ["logout"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["refresh"]
+            }
+          }
+        },
+        {
+          "name": "Get User Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": ["{{base_url}}"],
+              "path": ["me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pacientes",
+      "item": [
+        {
+          "name": "Get All Pacientes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pacientes",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes"]
+            }
+          }
+        },
+        {
+          "name": "Create Paciente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\":\"Juan Perez\",\"email\":\"juan@example.com\",\"telefono\":\"123456789\",\"documento\":\"12345678\",\"eps_id\":1}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pacientes",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes"]
+            }
+          }
+        },
+        {
+          "name": "Get Paciente by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pacientes/1",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Paciente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\":\"Juan Perez Updated\",\"email\":\"juan@example.com\",\"telefono\":\"123456789\",\"documento\":\"12345678\",\"eps_id\":1}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pacientes/1",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Paciente",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pacientes/1",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Citas by Paciente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pacientes/1/citas",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes", "1", "citas"]
+            }
+          }
+        },
+        {
+          "name": "Get Doctores by Paciente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pacientes/1/doctores",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes", "1", "doctores"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Doctores",
+      "item": [
+        {
+          "name": "Get All Doctores",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/doctores",
+              "host": ["{{base_url}}"],
+              "path": ["doctores"]
+            }
+          }
+        },
+        {
+          "name": "Create Doctor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\":\"Dr. Maria Lopez\",\"telefono\":\"987654321\",\"email\":\"maria@example.com\",\"especialidad_id\":1,\"eps_id\":1}"
+            },
+            "url": {
+              "raw": "{{base_url}}/doctores",
+              "host": ["{{base_url}}"],
+              "path": ["doctores"]
+            }
+          }
+        },
+        {
+          "name": "Get Doctor by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/doctores/1",
+              "host": ["{{base_url}}"],
+              "path": ["doctores", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Doctor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\":\"Dr. Maria Lopez Updated\",\"telefono\":\"987654321\",\"email\":\"maria@example.com\",\"especialidad_id\":1,\"eps_id\":1}"
+            },
+            "url": {
+              "raw": "{{base_url}}/doctores/1",
+              "host": ["{{base_url}}"],
+              "path": ["doctores", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Doctor",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/doctores/1",
+              "host": ["{{base_url}}"],
+              "path": ["doctores", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Citas by Doctor",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/doctores/1/citas",
+              "host": ["{{base_url}}"],
+              "path": ["doctores", "1", "citas"]
+            }
+          }
+        },
+        {
+          "name": "Get Pacientes by Doctor",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/doctores/1/pacientes",
+              "host": ["{{base_url}}"],
+              "path": ["doctores", "1", "pacientes"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Citas",
+      "item": [
+        {
+          "name": "Get All Citas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/citas",
+              "host": ["{{base_url}}"],
+              "path": ["citas"]
+            }
+          }
+        },
+        {
+          "name": "Create Cita",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pacientes_id\":1,\"doctor_id\":1,\"fecha\":\"2023-10-01\",\"hora\":\"10:00\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/citas",
+              "host": ["{{base_url}}"],
+              "path": ["citas"]
+            }
+          }
+        },
+        {
+          "name": "Get Cita by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/citas/1",
+              "host": ["{{base_url}}"],
+              "path": ["citas", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Cita",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pacientes_id\":1,\"doctor_id\":1,\"fecha\":\"2023-10-01\",\"hora\":\"11:00\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/citas/1",
+              "host": ["{{base_url}}"],
+              "path": ["citas", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Cita",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/citas/1",
+              "host": ["{{base_url}}"],
+              "path": ["citas", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Cita Completa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/citas/1/detalle",
+              "host": ["{{base_url}}"],
+              "path": ["citas", "1", "detalle"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "EPS",
+      "item": [
+        {
+          "name": "Get All EPS",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/eps",
+              "host": ["{{base_url}}"],
+              "path": ["eps"]
+            }
+          }
+        },
+        {
+          "name": "Create EPS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\":\"Nueva EPS\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/eps",
+              "host": ["{{base_url}}"],
+              "path": ["eps"]
+            }
+          }
+        },
+        {
+          "name": "Get EPS by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/eps/1",
+              "host": ["{{base_url}}"],
+              "path": ["eps", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update EPS",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\":\"Nueva EPS Updated\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/eps/1",
+              "host": ["{{base_url}}"],
+              "path": ["eps", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete EPS",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/eps/1",
+              "host": ["{{base_url}}"],
+              "path": ["eps", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Especialidades",
+      "item": [
+        {
+          "name": "Get All Especialidades",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/especialidades",
+              "host": ["{{base_url}}"],
+              "path": ["especialidades"]
+            }
+          }
+        },
+        {
+          "name": "Create Especialidad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\":\"Cardiologia\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/especialidades",
+              "host": ["{{base_url}}"],
+              "path": ["especialidades"]
+            }
+          }
+        },
+        {
+          "name": "Get Especialidad by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/especialidades/1",
+              "host": ["{{base_url}}"],
+              "path": ["especialidades", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Especialidad",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombre\":\"Cardiologia Updated\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/especialidades/1",
+              "host": ["{{base_url}}"],
+              "path": ["especialidades", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Especialidad",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/especialidades/1",
+              "host": ["{{base_url}}"],
+              "path": ["especialidades", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}
