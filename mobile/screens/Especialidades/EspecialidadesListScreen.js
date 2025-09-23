@@ -1,28 +1,44 @@
-import React from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { getEspecialidades } from '../../apis/especialidadesApi';
 
 const EspecialidadesListScreen = ({ navigation }) => {
-  const data = [
-    { id: "1", nombre: "Cardiología" },
-    { id: "2", nombre: "Pediatría" },
-    { id: "3", nombre: "Dermatología" },
-  ];
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEspecialidades();
+  }, []);
+
+  const fetchEspecialidades = async () => {
+    const result = await getEspecialidades();
+    setLoading(false);
+    if (result.success) {
+      setData(result.data);
+    } else {
+      Alert.alert('Error', result.error);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Listado de Especialidades</Text>
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => navigation.navigate("EspecialidadDetalle", { especialidad: item })}
-          >
-            <Text style={styles.text}>{item.nombre}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      {loading ? (
+        <Text>Cargando...</Text>
+      ) : (
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => navigation.navigate("EspecialidadDetalle", { especialidad: item })}
+            >
+              <Text style={styles.text}>{item.nombre}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("EspecialidadCreate")}

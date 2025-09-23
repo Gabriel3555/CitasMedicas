@@ -1,28 +1,44 @@
-import React from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { getDoctores } from '../../apis/doctoresApi';
 
 const DoctoresListScreen = ({ navigation }) => {
-  const doctores = [
-    { id: "1", nombre: "Dr. Juan Pérez", especialidad: "Cardiología" },
-    { id: "2", nombre: "Dra. Ana Gómez", especialidad: "Pediatría" },
-    { id: "3", nombre: "Dr. Luis Torres", especialidad: "Dermatología" },
-  ];
+  const [doctores, setDoctores] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDoctores();
+  }, []);
+
+  const fetchDoctores = async () => {
+    const result = await getDoctores();
+    setLoading(false);
+    if (result.success) {
+      setDoctores(result.data);
+    } else {
+      Alert.alert('Error', result.error);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Listado de Doctores</Text>
-      <FlatList
-        data={doctores}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => navigation.navigate("DoctorDetalle", { doctor: item })}
-          >
-            <Text style={styles.text}>{item.nombre} - {item.especialidad}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      {loading ? (
+        <Text>Cargando...</Text>
+      ) : (
+        <FlatList
+          data={doctores}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => navigation.navigate("DoctorDetalle", { doctor: item })}
+            >
+              <Text style={styles.text}>{item.nombre} - {item.especialidad}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("DoctorCreate")}

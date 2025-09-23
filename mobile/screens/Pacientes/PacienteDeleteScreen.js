@@ -1,12 +1,21 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { deletePaciente } from '../../apis/pacientesApi';
 
 const PacienteDeleteScreen = ({ route, navigation }) => {
   const { paciente } = route.params;
+  const [loading, setLoading] = useState(false);
 
-  const handleDelete = () => {
-    alert(`Paciente "${paciente.nombre}" eliminado (solo UI)`);
-    navigation.popToTop();
+  const handleDelete = async () => {
+    setLoading(true);
+    const result = await deletePaciente(paciente.id);
+    setLoading(false);
+    if (result.success) {
+      Alert.alert('Éxito', 'Paciente eliminado exitosamente');
+      navigation.popToTop();
+    } else {
+      Alert.alert('Error', result.error);
+    }
   };
 
   return (
@@ -17,8 +26,9 @@ const PacienteDeleteScreen = ({ route, navigation }) => {
       <TouchableOpacity
         style={[styles.button, { backgroundColor: "red" }]}
         onPress={handleDelete}
+        disabled={loading}
       >
-        <Text style={styles.buttonText}>Eliminar</Text>
+        <Text style={styles.buttonText}>{loading ? 'Eliminando...' : 'Eliminar'}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity

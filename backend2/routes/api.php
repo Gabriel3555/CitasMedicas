@@ -6,6 +6,7 @@ use App\Http\Controllers\DoctoresController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\EPSController;
 use App\Http\Controllers\EspecialidadesController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +18,15 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/profile/photo', [AuthController::class, 'uploadPhoto']);
+
+    // User management routes (admin only)
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::put('/users/{id}', [UserController::class, 'update']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    Route::get('/users/{id}', [UserController::class, 'show']);
 
     // Pacientes routes
     Route::get('/pacientes', [PacientesController::class, 'index']);
@@ -26,6 +36,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/pacientes/{id}', [PacientesController::class, 'show']);
     Route::get('/pacientes/{id}/citas', [PacientesController::class, 'citasByPaciente']);
     Route::get('/pacientes/{id}/doctores', [PacientesController::class, 'doctoresByPaciente']);
+    Route::get('/pacientes-search', [PacientesController::class, 'search']);
 
     // Doctores routes
     Route::get('/doctores', [DoctoresController::class, 'index']);
@@ -40,13 +51,15 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/citas', [CitasController::class, 'index']);
     Route::post('/citas', [CitasController::class, 'store']);
     Route::put('/citas/{id}', [CitasController::class, 'update']);
+    Route::put('/citas/{id}/status', [CitasController::class, 'updateStatus']);
     Route::delete('/citas/{id}', [CitasController::class, 'destroy']);
     Route::get('/citas/{id}', [CitasController::class, 'show']);
     Route::get('/citas/{id}/detalle', [CitasController::class, 'citaCompleta']);
+    Route::get('/my-citas', [CitasController::class, 'myCitas']);
+    Route::get('/my-citas-doctor', [CitasController::class, 'myCitasDoctor']);
 
     // EPS routes
     Route::get('/eps', [EPSController::class, 'index']);
-    Route::post('/eps', [EPSController::class, 'store']);
     Route::put('/eps/{id}', [EPSController::class, 'update']);
     Route::delete('/eps/{id}', [EPSController::class, 'destroy']);
     Route::get('/eps/{id}', [EPSController::class, 'show']);
@@ -58,4 +71,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::delete('/especialidades/{id}', [EspecialidadesController::class, 'destroy']);
     Route::get('/especialidades/{id}', [EspecialidadesController::class, 'show']);
 });
+
+// EPS routes
+Route::post('/eps', [EPSController::class, 'store']);
 

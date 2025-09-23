@@ -1,12 +1,21 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { deleteEps } from '../../apis/epsApi';
 
 const EPSDeleteScreen = ({ route, navigation }) => {
   const { eps } = route.params;
+  const [loading, setLoading] = useState(false);
 
-  const handleDelete = () => {
-    alert(`EPS "${eps.nombre}" eliminada (solo UI)`);
-    navigation.popToTop();
+  const handleDelete = async () => {
+    setLoading(true);
+    const result = await deleteEps(eps.id);
+    setLoading(false);
+    if (result.success) {
+      Alert.alert('Éxito', 'EPS eliminada exitosamente');
+      navigation.popToTop();
+    } else {
+      Alert.alert('Error', result.error);
+    }
   };
 
   return (
@@ -17,8 +26,9 @@ const EPSDeleteScreen = ({ route, navigation }) => {
       <TouchableOpacity
         style={[styles.button, { backgroundColor: "red" }]}
         onPress={handleDelete}
+        disabled={loading}
       >
-        <Text style={styles.buttonText}>Eliminar</Text>
+        <Text style={styles.buttonText}>{loading ? 'Eliminando...' : 'Eliminar'}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity

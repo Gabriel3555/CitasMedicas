@@ -3,15 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Cita extends Model
 {
+    use HasFactory;
+
     protected $table = 'citas';
     protected $fillable = [
         "pacientes_id",
         "doctor_id",
         "fecha",
         "hora",
+        "status",
     ];
 
     public function paciente()

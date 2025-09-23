@@ -1,12 +1,25 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { createEps } from '../../apis/epsApi';
 
 const EPSCreateScreen = ({ navigation }) => {
   const [nombre, setNombre] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleCreate = () => {
-    alert(`EPS "${nombre}" creada (solo UI)`);
-    navigation.goBack();
+  const handleCreate = async () => {
+    if (!nombre) {
+      Alert.alert('Error', 'Por favor ingresa el nombre de la EPS');
+      return;
+    }
+    setLoading(true);
+    const result = await createEps({ nombre });
+    setLoading(false);
+    if (result.success) {
+      Alert.alert('Éxito', 'EPS creada exitosamente');
+      navigation.goBack();
+    } else {
+      Alert.alert('Error', result.error);
+    }
   };
 
   return (
@@ -18,8 +31,8 @@ const EPSCreateScreen = ({ navigation }) => {
         value={nombre}
         onChangeText={setNombre}
       />
-      <TouchableOpacity style={styles.button} onPress={handleCreate}>
-        <Text style={styles.buttonText}>Guardar</Text>
+      <TouchableOpacity style={styles.button} onPress={handleCreate} disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? 'Creando...' : 'Guardar'}</Text>
       </TouchableOpacity>
     </View>
   );

@@ -1,28 +1,48 @@
-import React from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { getEps } from '../../apis/epsApi';
 
 const EPSListScreen = ({ navigation }) => {
-  const epsData = [
-    { id: "1", nombre: "Sanitas" },
-    { id: "2", nombre: "Sura" },
-    { id: "3", nombre: "Nueva EPS" },
-  ];
+  const [epsData, setEpsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEps();
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchEps();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  const fetchEps = async () => {
+    const result = await getEps();
+    setLoading(false);
+    if (result.success) {
+      setEpsData(result.data);
+    } else {
+      Alert.alert('Error', result.error);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Listado de EPS</Text>
-      <FlatList
-        data={epsData}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => navigation.navigate("EPSDetalle", { eps: item })}
-          >
-            <Text style={styles.text}>{item.nombre}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      {loading ? (
+        <Text>Cargando...</Text>
+      ) : (
+        <FlatList
+          data={epsData}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => navigation.navigate("EPSDetalle", { eps: item })}
+            >
+              <Text style={styles.text}>{item.nombre}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("EPSCreate")}

@@ -93,4 +93,22 @@ class PacientesController extends Controller
         return response()->json($doctores, 200);
     }
 
+    public function search(Request $request)
+    {
+        $query = $request->get('q', '');
+        $limit = $request->get('limit', 10);
+
+        if (strlen($query) < 2) {
+            return response()->json(['message' => 'Query must be at least 2 characters'], 400);
+        }
+
+        $pacientes = Paciente::where('nombre', 'LIKE', '%' . $query . '%')
+                            ->orWhere('email', 'LIKE', '%' . $query . '%')
+                            ->with('eps')
+                            ->limit($limit)
+                            ->get();
+
+        return response()->json($pacientes, 200);
+    }
+
 }
