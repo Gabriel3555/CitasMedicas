@@ -19,10 +19,19 @@ export const createDoctor = async (doctorData) => {
 };
 
 export const updateDoctor = async (id, doctorData) => {
+  console.log('doctoresApi: updateDoctor called', { id, doctorData });
   try {
+    console.log('doctoresApi: Making PUT request to:', `/doctores/${id}`);
     const response = await api.put(`/doctores/${id}`, doctorData);
+    console.log('doctoresApi: Request successful', response.data);
     return { success: true, data: response.data };
   } catch (error) {
+    console.log('doctoresApi: Request failed', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message
+    });
     return { success: false, error: error.response?.data?.error || 'Error al actualizar doctor' };
   }
 };

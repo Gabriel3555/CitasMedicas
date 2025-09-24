@@ -10,12 +10,12 @@ use Illuminate\Support\Facades\Validator;
 class PacientesController extends Controller
 {
     public function index() {
-        $pacientes = Paciente::all();
+        $pacientes = Paciente::with('eps')->get();
         return response()->json($pacientes);
     }
 
     public function show($id) {
-        $paciente = Paciente::find($id);
+        $paciente = Paciente::with('eps')->find($id);
         if (!$paciente) {
             return response()->json(['message' => 'paciente not found'], 404);
         }
@@ -69,29 +69,6 @@ class PacientesController extends Controller
         return response()->json(null, 204);
     }
 
-    public function citasByPaciente($id)
-    {
-        $paciente = Paciente::with('citas')->find($id);
-
-        if (!$paciente) {
-            return response()->json(['message' => 'Paciente not found'], 404);
-        }
-
-        return response()->json($paciente->citas, 200);
-    }
-
-    public function doctoresByPaciente($id)
-    {
-        $paciente = Paciente::with('citas.doctor')->find($id);
-
-        if (!$paciente) {
-            return response()->json(['message' => 'Paciente not found'], 404);
-        }
-
-        $doctores = $paciente->citas->pluck('doctor')->unique('id')->values();
-
-        return response()->json($doctores, 200);
-    }
 
     public function search(Request $request)
     {

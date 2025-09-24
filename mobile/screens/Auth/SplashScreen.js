@@ -16,17 +16,8 @@ const SplashScreen = ({ navigation }) => {
         // Verificar si el token es válido
         const result = await me();
         if (result.success) {
-          const role = result.data.role;
-          // Redirigir al dashboard correspondiente
-          if (role === 'paciente') {
-            navigation.replace('PatientDashboard');
-          } else if (role === 'doctor') {
-            navigation.replace('DoctorDashboard');
-          } else if (role === 'admin') {
-            navigation.replace('AdminDashboard');
-          } else {
-            navigation.replace('Login');
-          }
+          // Todos los usuarios ahora son admin
+          navigation.replace('AdminDashboard');
         } else {
           // Token inválido, ir al login
           navigation.replace('Login');

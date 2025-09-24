@@ -80,3 +80,39 @@ export const getMyCitasDoctor = async () => {
     return { success: false, error: error.response?.data?.error || 'Error al obtener mis citas como doctor' };
   }
 };
+
+export const getAvailableSlots = async (doctorId, fecha) => {
+  console.log('citasApi@getAvailableSlots - Request initiated', {
+    doctorId,
+    fecha,
+    timestamp: new Date().toISOString()
+  });
+
+  try {
+    console.log('citasApi@getAvailableSlots - Making API call', {
+      url: '/citas/available-slots',
+      params: { doctor_id: doctorId, fecha: fecha }
+    });
+
+    const response = await api.get('/citas/available-slots', {
+      params: { doctor_id: doctorId, fecha: fecha }
+    });
+
+    console.log('citasApi@getAvailableSlots - API call successful', {
+      status: response.status,
+      data: response.data,
+      slots_count: response.data.slots ? response.data.slots.length : 0
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('citasApi@getAvailableSlots - API call failed', {
+      error: error,
+      response: error.response,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+
+    return { success: false, error: error.response?.data?.error || 'Error al obtener slots disponibles' };
+  }
+};

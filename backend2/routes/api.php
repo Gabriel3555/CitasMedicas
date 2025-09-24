@@ -34,8 +34,6 @@ Route::middleware('jwt.auth')->group(function () {
     Route::put('/pacientes/{id}', [PacientesController::class, 'update']);
     Route::delete('/pacientes/{id}', [PacientesController::class, 'destroy']);
     Route::get('/pacientes/{id}', [PacientesController::class, 'show']);
-    Route::get('/pacientes/{id}/citas', [PacientesController::class, 'citasByPaciente']);
-    Route::get('/pacientes/{id}/doctores', [PacientesController::class, 'doctoresByPaciente']);
     Route::get('/pacientes-search', [PacientesController::class, 'search']);
 
     // Doctores routes
@@ -44,19 +42,16 @@ Route::middleware('jwt.auth')->group(function () {
     Route::put('/doctores/{id}', [DoctoresController::class, 'update']);
     Route::delete('/doctores/{id}', [DoctoresController::class, 'destroy']);
     Route::get('/doctores/{id}', [DoctoresController::class, 'show']);
-    Route::get('/doctores/{id}/citas', [DoctoresController::class, 'citasByDoctor']);
-    Route::get('/doctores/{id}/pacientes', [DoctoresController::class, 'pacientesByDoctor']);
 
     // Citas routes
     Route::get('/citas', [CitasController::class, 'index']);
     Route::post('/citas', [CitasController::class, 'store']);
+    Route::get('/citas/available-slots', [CitasController::class, 'getAvailableSlots']);
     Route::put('/citas/{id}', [CitasController::class, 'update']);
     Route::put('/citas/{id}/status', [CitasController::class, 'updateStatus']);
     Route::delete('/citas/{id}', [CitasController::class, 'destroy']);
     Route::get('/citas/{id}', [CitasController::class, 'show']);
     Route::get('/citas/{id}/detalle', [CitasController::class, 'citaCompleta']);
-    Route::get('/my-citas', [CitasController::class, 'myCitas']);
-    Route::get('/my-citas-doctor', [CitasController::class, 'myCitasDoctor']);
 
     // EPS routes
     Route::get('/eps', [EPSController::class, 'index']);

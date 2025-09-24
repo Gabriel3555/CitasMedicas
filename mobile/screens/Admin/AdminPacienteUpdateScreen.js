@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { updatePaciente } from '../../apis/pacientesApi';
-import { getEPS } from '../../apis/epsApi';
+import { getEps } from '../../apis/epsApi';
 
 const AdminPacienteUpdateScreen = ({ navigation, route }) => {
   const { paciente } = route.params;
@@ -19,9 +19,17 @@ const AdminPacienteUpdateScreen = ({ navigation, route }) => {
   }, []);
 
   const fetchEPS = async () => {
-    const result = await getEPS();
-    if (result.success) {
-      setEpsList(result.data);
+    try {
+      const result = await getEps();
+      if (result.success) {
+        setEpsList(result.data);
+      } else {
+        console.error('Error al cargar EPS:', result.error);
+        Alert.alert('Error', 'No se pudieron cargar las EPS');
+      }
+    } catch (error) {
+      console.error('Error en fetchEPS:', error);
+      Alert.alert('Error', 'Error al conectar con el servidor');
     }
   };
 
@@ -87,25 +95,41 @@ const AdminPacienteUpdateScreen = ({ navigation, route }) => {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>EPS</Text>
+          <View style={styles.epsHeader}>
+            <Text style={styles.label}>EPS</Text>
+            <TouchableOpacity
+              style={styles.reloadBtn}
+              onPress={fetchEPS}
+            >
+              <Text style={styles.reloadBtnText}>🔄 Recargar</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.pickerContainer}>
-            {epsList.map((eps) => (
-              <TouchableOpacity
-                key={eps.id}
-                style={[
-                  styles.epsOption,
-                  formData.eps_id === eps.id.toString() && styles.epsOptionSelected
-                ]}
-                onPress={() => handleInputChange('eps_id', eps.id.toString())}
-              >
-                <Text style={[
-                  styles.epsOptionText,
-                  formData.eps_id === eps.id.toString() && styles.epsOptionTextSelected
-                ]}>
-                  {eps.nombre}
+            {epsList.length === 0 ? (
+              <View style={styles.noEpsContainer}>
+                <Text style={styles.noEpsText}>
+                  {epsList.length === 0 && !loading ? 'No hay EPS disponibles' : 'Cargando EPS...'}
                 </Text>
-              </TouchableOpacity>
-            ))}
+              </View>
+            ) : (
+              epsList.map((eps) => (
+                <TouchableOpacity
+                  key={eps.id}
+                  style={[
+                    styles.epsOption,
+                    formData.eps_id === eps.id.toString() && styles.epsOptionSelected
+                  ]}
+                  onPress={() => handleInputChange('eps_id', eps.id.toString())}
+                >
+                  <Text style={[
+                    styles.epsOptionText,
+                    formData.eps_id === eps.id.toString() && styles.epsOptionTextSelected
+                  ]}>
+                    {eps.nombre}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            )}
           </View>
         </View>
 
@@ -136,7 +160,30 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16
   },
+  epsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5
+  },
+  reloadBtn: {
+    backgroundColor: '#6c757d',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 3
+  },
+  reloadBtnText: { color: 'white', fontSize: 12 },
   pickerContainer: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5 },
+  noEpsContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  noEpsText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center'
+  },
   epsOption: {
     padding: 10,
     borderBottomWidth: 1,

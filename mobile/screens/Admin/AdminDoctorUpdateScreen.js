@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { updateDoctor } from '../../apis/doctoresApi';
 import { getEspecialidades } from '../../apis/especialidadesApi';
+import { getEps } from '../../apis/epsApi';
 
 const AdminDoctorUpdateScreen = ({ navigation, route }) => {
   const { doctor } = route.params;
@@ -10,14 +11,17 @@ const AdminDoctorUpdateScreen = ({ navigation, route }) => {
     email: doctor.email || '',
     telefono: doctor.telefono || '',
     especialidad_id: doctor.especialidad_id?.toString() || '',
+    eps_id: doctor.eps_id?.toString() || '',
     start_time: doctor.start_time || '',
     end_time: doctor.end_time || ''
   });
   const [especialidadesList, setEspecialidadesList] = useState([]);
+  const [epsList, setEpsList] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchEspecialidades();
+    fetchEPS();
   }, []);
 
   const fetchEspecialidades = async () => {
@@ -27,14 +31,21 @@ const AdminDoctorUpdateScreen = ({ navigation, route }) => {
     }
   };
 
+  const fetchEPS = async () => {
+    const result = await getEps();
+    if (result.success) {
+      setEpsList(result.data);
+    }
+  };
+
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
   };
 
   const handleSubmit = async () => {
     if (!formData.nombre || !formData.email || !formData.telefono ||
-        !formData.especialidad_id || !formData.start_time || !formData.end_time) {
-      Alert.alert('Error', 'Todos los campos son obligatorios');
+        !formData.especialidad_id || !formData.eps_id) {
+      Alert.alert('Error', 'Los campos marcados con * son obligatorios');
       return;
     }
 
@@ -57,7 +68,7 @@ const AdminDoctorUpdateScreen = ({ navigation, route }) => {
 
       <View style={styles.form}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Nombre completo</Text>
+          <Text style={styles.label}>Nombre completo *</Text>
           <TextInput
             style={styles.input}
             value={formData.nombre}
@@ -67,7 +78,7 @@ const AdminDoctorUpdateScreen = ({ navigation, route }) => {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>Email *</Text>
           <TextInput
             style={styles.input}
             value={formData.email}
@@ -79,7 +90,7 @@ const AdminDoctorUpdateScreen = ({ navigation, route }) => {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Teléfono</Text>
+          <Text style={styles.label}>Teléfono *</Text>
           <TextInput
             style={styles.input}
             value={formData.telefono}
@@ -90,7 +101,7 @@ const AdminDoctorUpdateScreen = ({ navigation, route }) => {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Especialidad</Text>
+          <Text style={styles.label}>Especialidad *</Text>
           <View style={styles.pickerContainer}>
             {especialidadesList.map((especialidad) => (
               <TouchableOpacity
@@ -113,6 +124,29 @@ const AdminDoctorUpdateScreen = ({ navigation, route }) => {
         </View>
 
         <View style={styles.inputGroup}>
+          <Text style={styles.label}>EPS *</Text>
+          <View style={styles.pickerContainer}>
+            {epsList.map((eps) => (
+              <TouchableOpacity
+                key={eps.id}
+                style={[
+                  styles.epsOption,
+                  formData.eps_id === eps.id.toString() && styles.epsOptionSelected
+                ]}
+                onPress={() => handleInputChange('eps_id', eps.id.toString())}
+              >
+                <Text style={[
+                  styles.epsOptionText,
+                  formData.eps_id === eps.id.toString() && styles.epsOptionTextSelected
+                ]}>
+                  {eps.nombre}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.inputGroup}>
           <Text style={styles.label}>Hora de inicio</Text>
           <TextInput
             style={styles.input}
@@ -123,13 +157,18 @@ const AdminDoctorUpdateScreen = ({ navigation, route }) => {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Hora de fin</Text>
+          <Text style={styles.label}>Hora de fin (opcional)</Text>
           <TextInput
             style={styles.input}
             value={formData.end_time}
             onChangeText={(value) => handleInputChange('end_time', value)}
             placeholder="17:00"
           />
+        </View>
+
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoText}>💡 Los campos marcados con * son obligatorios</Text>
+          <Text style={styles.infoText}>💡 Los horarios de inicio y fin son opcionales</Text>
         </View>
 
         <TouchableOpacity
@@ -168,6 +207,14 @@ const styles = StyleSheet.create({
   especialidadOptionSelected: { backgroundColor: '#007bff' },
   especialidadOptionText: { fontSize: 16 },
   especialidadOptionTextSelected: { color: 'white' },
+  epsOption: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee'
+  },
+  epsOptionSelected: { backgroundColor: '#28a745' },
+  epsOptionText: { fontSize: 16 },
+  epsOptionTextSelected: { color: 'white' },
   submitBtn: {
     backgroundColor: '#007bff',
     padding: 15,
@@ -176,7 +223,18 @@ const styles = StyleSheet.create({
     marginTop: 20
   },
   submitBtnDisabled: { backgroundColor: '#ccc' },
-  submitBtnText: { color: 'white', fontSize: 16, fontWeight: 'bold' }
+  submitBtnText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  infoContainer: {
+    backgroundColor: '#e8f4f8',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#2980b9',
+    marginBottom: 5
+  }
 });
 
 export default AdminDoctorUpdateScreen;

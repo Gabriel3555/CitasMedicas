@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { updateCita } from '../../apis/citasApi';
 import { getPacientes } from '../../apis/pacientesApi';
 import { getDoctores } from '../../apis/doctoresApi';
@@ -61,46 +62,40 @@ const AdminCitaUpdateScreen = ({ navigation, route }) => {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Paciente</Text>
           <View style={styles.pickerContainer}>
-            {pacientes.map((paciente) => (
-              <TouchableOpacity
-                key={paciente.id}
-                style={[
-                  styles.option,
-                  formData.pacientes_id === paciente.id.toString() && styles.optionSelected
-                ]}
-                onPress={() => handleInputChange('pacientes_id', paciente.id.toString())}
-              >
-                <Text style={[
-                  styles.optionText,
-                  formData.pacientes_id === paciente.id.toString() && styles.optionTextSelected
-                ]}>
-                  {paciente.nombre} - {paciente.email}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            <Picker
+              selectedValue={formData.pacientes_id}
+              onValueChange={(value) => handleInputChange('pacientes_id', value)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Seleccionar paciente..." value="" />
+              {pacientes.map((paciente) => (
+                <Picker.Item
+                  key={paciente.id}
+                  label={`${paciente.nombre} - ${paciente.email}`}
+                  value={paciente.id.toString()}
+                />
+              ))}
+            </Picker>
           </View>
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Doctor</Text>
           <View style={styles.pickerContainer}>
-            {doctores.map((doctor) => (
-              <TouchableOpacity
-                key={doctor.id}
-                style={[
-                  styles.option,
-                  formData.doctor_id === doctor.id.toString() && styles.optionSelected
-                ]}
-                onPress={() => handleInputChange('doctor_id', doctor.id.toString())}
-              >
-                <Text style={[
-                  styles.optionText,
-                  formData.doctor_id === doctor.id.toString() && styles.optionTextSelected
-                ]}>
-                  Dr. {doctor.nombre} - {doctor.especialidad?.nombre}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            <Picker
+              selectedValue={formData.doctor_id}
+              onValueChange={(value) => handleInputChange('doctor_id', value)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Seleccionar doctor..." value="" />
+              {doctores.map((doctor) => (
+                <Picker.Item
+                  key={doctor.id}
+                  label={`Dr. ${doctor.nombre} - ${doctor.especialidad?.nombre || 'Sin especialidad'}`}
+                  value={doctor.id.toString()}
+                />
+              ))}
+            </Picker>
           </View>
         </View>
 
@@ -151,15 +146,8 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16
   },
-  pickerContainer: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, maxHeight: 150 },
-  option: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee'
-  },
-  optionSelected: { backgroundColor: '#007bff' },
-  optionText: { fontSize: 16 },
-  optionTextSelected: { color: 'white' },
+  pickerContainer: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5 },
+  picker: { height: 50 },
   submitBtn: {
     backgroundColor: '#007bff',
     padding: 15,

@@ -33,7 +33,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
-            'role' => 'required|in:paciente,doctor,admin',
+            'role' => 'required|in:admin',
         ]);
 
         if ($validator->fails()) {
@@ -47,28 +47,7 @@ class UserController extends Controller
             'role' => $request->role,
         ]);
 
-        // Crear el perfil correspondiente si es necesario
-        if ($request->role === 'paciente') {
-            Paciente::create([
-                'user_id' => $user->id,
-                'nombre' => $request->name,
-                'email' => $request->email,
-                'telefono' => $request->telefono ?? '1234567890',
-                'documento' => uniqid('doc_', true),
-                'eps_id' => $request->eps_id ?? 1,
-            ]);
-        } elseif ($request->role === 'doctor') {
-            Doctor::create([
-                'user_id' => $user->id,
-                'nombre' => $request->name,
-                'email' => $request->email,
-                'telefono' => $request->telefono ?? '1234567890',
-                'especialidad_id' => $request->especialidad_id ?? 1,
-                'eps_id' => $request->eps_id ?? 1,
-                'start_time' => $request->start_time ?? '09:00',
-                'end_time' => $request->end_time ?? '17:00',
-            ]);
-        }
+        // Los administradores no necesitan perfiles adicionales
 
         return response()->json($user, 201);
     }
@@ -84,7 +63,7 @@ class UserController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $id,
             'password' => 'sometimes|required|string|min:6',
-            'role' => 'sometimes|required|in:paciente,doctor,admin',
+            'role' => 'sometimes|required|in:admin',
         ]);
 
         if ($validator->fails()) {
@@ -99,30 +78,7 @@ class UserController extends Controller
 
         $user->update($updateData);
 
-        // Si se actualiza el rol, manejar los perfiles
-        if ($request->has('role')) {
-            if ($request->role === 'paciente' && !$user->paciente) {
-                Paciente::create([
-                    'user_id' => $user->id,
-                    'nombre' => $request->name,
-                    'email' => $request->email,
-                    'telefono' => $request->telefono ?? '1234567890',
-                    'documento' => uniqid('doc_', true),
-                    'eps_id' => $request->eps_id ?? 1,
-                ]);
-            } elseif ($request->role === 'doctor' && !$user->doctor) {
-                Doctor::create([
-                    'user_id' => $user->id,
-                    'nombre' => $request->name,
-                    'email' => $request->email,
-                    'telefono' => $request->telefono ?? '1234567890',
-                    'especialidad_id' => $request->especialidad_id ?? 1,
-                    'eps_id' => $request->eps_id ?? 1,
-                    'start_time' => $request->start_time ?? '09:00',
-                    'end_time' => $request->end_time ?? '17:00',
-                ]);
-            }
-        }
+        // Los administradores no necesitan perfiles adicionales
 
         return response()->json($user, 200);
     }

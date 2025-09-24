@@ -49,6 +49,7 @@ const AdminDoctoresListScreen = ({ navigation }) => {
       <View style={styles.doctorInfo}>
         <Text style={styles.doctorName}>Dr. {item.nombre}</Text>
         <Text style={styles.doctorDetails}>Especialidad: {item.especialidad?.nombre}</Text>
+        <Text style={styles.doctorDetails}>EPS: {item.eps?.nombre}</Text>
         <Text style={styles.doctorDetails}>Email: {item.email}</Text>
         <Text style={styles.doctorDetails}>Teléfono: {item.telefono}</Text>
         <Text style={styles.doctorDetails}>
@@ -56,6 +57,12 @@ const AdminDoctoresListScreen = ({ navigation }) => {
         </Text>
       </View>
       <View style={styles.actions}>
+        <TouchableOpacity
+          style={styles.scheduleBtn}
+          onPress={() => navigation.navigate('AdminDoctorSchedule', { doctor: item })}
+        >
+          <Text style={styles.btnText}>⏰ Horario</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.editBtn}
           onPress={() => navigation.navigate('AdminDoctorUpdate', { doctor: item })}
@@ -131,6 +138,12 @@ const styles = StyleSheet.create({
   doctorName: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
   doctorDetails: { fontSize: 14, color: '#666' },
   actions: { flexDirection: 'row', gap: 10 },
+  scheduleBtn: {
+    backgroundColor: '#17a2b8',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 5
+  },
   editBtn: {
     backgroundColor: '#007bff',
     paddingHorizontal: 12,

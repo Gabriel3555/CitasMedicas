@@ -37,14 +37,14 @@ describe('authApi', () => {
       const mockResponse = { data: { user: { id: 1, name: 'Test' }, token: 'token123' } };
       api.post.mockResolvedValue(mockResponse);
 
-      const result = await register('Test', 'test@example.com', 'password', 'password', 'paciente');
+      const result = await register('Test', 'test@example.com', 'password', 'password', 'admin');
 
       expect(api.post).toHaveBeenCalledWith('/register', {
         name: 'Test',
         email: 'test@example.com',
         password: 'password',
         password_confirmation: 'password',
-        role: 'paciente'
+        role: 'admin'
       });
       expect(result).toEqual({ success: true, data: mockResponse.data });
     });
@@ -53,7 +53,7 @@ describe('authApi', () => {
       const mockError = { response: { data: { message: 'Error registering' } } };
       api.post.mockRejectedValue(mockError);
 
-      const result = await register('Test', 'test@example.com', 'password', 'password', 'paciente');
+      const result = await register('Test', 'test@example.com', 'password', 'password', 'admin');
 
       expect(result).toEqual({ success: false, error: 'Error registering' });
     });

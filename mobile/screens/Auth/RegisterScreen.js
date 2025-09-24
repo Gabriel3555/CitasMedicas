@@ -8,7 +8,7 @@ const RegisterScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password_confirmation, setPasswordConfirmation] = useState("");
-  const [role, setRole] = useState("paciente");
+  const [role, setRole] = useState("admin");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -178,25 +178,12 @@ const RegisterScreen = ({ navigation }) => {
             </Animatable.View>
 
             <Animatable.View animation="zoomIn" duration={600} delay={1200} style={styles.roleContainer}>
-              <Text style={styles.inputLabel}>Selecciona tu rol:</Text>
-              <View style={styles.rolesGrid}>
+              <Text style={styles.inputLabel}>Tipo de cuenta:</Text>
+              <View style={styles.adminContainer}>
                 <TouchableOpacity
-                  style={[styles.roleButton, role === 'paciente' && styles.roleButtonSelected]}
-                  onPress={() => setRole('paciente')}
+                  style={styles.adminButton}
                 >
-                  <Text style={[styles.roleButtonText, role === 'paciente' && styles.roleButtonTextSelected]}>👤 Paciente</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.roleButton, role === 'doctor' && styles.roleButtonSelected]}
-                  onPress={() => setRole('doctor')}
-                >
-                  <Text style={[styles.roleButtonText, role === 'doctor' && styles.roleButtonTextSelected]}>👨‍⚕️ Doctor</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.roleButton, role === 'admin' && styles.roleButtonSelected]}
-                  onPress={() => setRole('admin')}
-                >
-                  <Text style={[styles.roleButtonText, role === 'admin' && styles.roleButtonTextSelected]}>⚙️ Admin</Text>
+                  <Text style={styles.adminButtonText}>⚙️ Administrador</Text>
                 </TouchableOpacity>
               </View>
             </Animatable.View>
@@ -306,32 +293,23 @@ const styles = StyleSheet.create({
   roleContainer: {
     marginBottom: 24,
   },
-  rolesGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  adminContainer: {
     marginTop: 12,
-  },
-  roleButton: {
-    flex: 1,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 12,
-    marginHorizontal: 4,
     alignItems: 'center',
-    backgroundColor: '#fafafa',
   },
-  roleButtonSelected: {
-    backgroundColor: '#007AFF',
+  adminButton: {
+    padding: 20,
+    borderWidth: 2,
     borderColor: '#007AFF',
+    borderRadius: 12,
+    backgroundColor: '#f0f8ff',
+    minWidth: 200,
+    alignItems: 'center',
   },
-  roleButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-  },
-  roleButtonTextSelected: {
-    color: 'white',
+  adminButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#007AFF',
   },
   button: {
     backgroundColor: '#28a745',

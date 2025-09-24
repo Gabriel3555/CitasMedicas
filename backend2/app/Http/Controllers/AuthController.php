@@ -22,7 +22,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:paciente,doctor,admin',
+            'role' => 'required|in:admin',
         ]);
 
         if ($validator->fails()) {
@@ -41,62 +41,16 @@ class AuthController extends Controller
 
         Log::info('User created', ['user_id' => $user->id, 'role' => $request->role]);
 
-        try {
-            // Crear el perfil correspondiente
-            if ($request->role === 'paciente') {
-                Log::info('Creating paciente profile');
-                Paciente::create([
-                    'user_id' => $user->id,
-                    'nombre' => $request->name,
-                    'email' => $request->email,
-                    'telefono' => '1234567890',
-                    'documento' => uniqid('doc_', true),
-                    'eps_id' => $eps->id,
-                ]);
-                Log::info('Paciente profile created');
-            } elseif ($request->role === 'doctor') {
-                Log::info('Creating doctor profile');
+        // Admin no necesita perfil adicional
+        Log::info('Generating token');
+        $token = JWTAuth::fromUser($user);
 
-                // Asegurarse de que existan especialidades y EPS
-                $especialidad = \App\Models\Especialidad::first();
-                if (!$especialidad) {
-                    $especialidad = \App\Models\Especialidad::create(['nombre' => 'Medicina General']);
-                }
-
-                $eps = \App\Models\EPS::first();
-                if (!$eps) {
-                    $eps = \App\Models\EPS::create(['nombre' => 'EPS Salud']);
-                }
-
-                Doctor::create([
-                    'user_id' => $user->id,
-                    'nombre' => $request->name,
-                    'email' => $request->email,
-                    'telefono' => '1234567890',
-                    'especialidad_id' => $especialidad->id,
-                    'eps_id' => $eps->id,
-                    'start_time' => '09:00',
-                    'end_time' => '17:00',
-                ]);
-                Log::info('Doctor profile created');
-            }
-            // Admin no necesita perfil adicional
-
-            Log::info('Generating token');
-            $token = JWTAuth::fromUser($user);
-
-            Log::info('Registration successful');
-            return response()->json([
-                'message' => 'Usuario registrado exitosamente',
-                'user' => in_array($request->role, ['paciente', 'doctor']) ? $user->load($request->role) : $user, // Cargar el perfil si aplica
-                'token' => $token
-            ], 201);
-        } catch (\Exception $e) {
-            Log::error('Profile creation failed', ['error' => $e->getMessage()]);
-            // Delete the user if profile creation fails
-            $user->delete();
-            return response()->json(['error' => 'Error al crear el perfil de usuario'], 500);
-        }
+        Log::info('Registration successful');
+        return response()->json([
+            'message' => 'Usuario registrado exitosamente',
+            'user' => $user,
+            'token' => $token
+        ], 201);
     }
 
     public function login(Request $request)
@@ -118,9 +72,6 @@ class AuthController extends Controller
 
         $user = Auth::user();
 
-        // Cargar el perfil correspondiente si aplica
-        $user = in_array($user->role, ['paciente', 'doctor']) ? User::with($user->role)->find($user->id) : $user;
-
         return response()->json([
             'message' => 'Login exitoso',
             'user' => $user,
@@ -141,9 +92,6 @@ class AuthController extends Controller
     public function me()
     {
         $user = Auth::user();
-
-        // Cargar el perfil correspondiente si aplica
-        $user = in_array($user->role, ['paciente', 'doctor']) ? User::with($user->role)->find($user->id) : $user;
 
         // Agregar la URL completa de la foto si existe
         if ($user->photo) {
@@ -177,22 +125,7 @@ class AuthController extends Controller
             $user->save();
         }
 
-        // Si es paciente, actualizar datos del perfil de paciente
-        if ($user->role === 'paciente' && $user->paciente) {
-            if ($request->has('telefono')) {
-                $user->paciente->update(['telefono' => $request->telefono]);
-            }
-        }
-
-        // Si es doctor, actualizar datos del perfil de doctor
-        if ($user->role === 'doctor' && $user->doctor) {
-            if ($request->has('telefono')) {
-                $user->doctor->update(['telefono' => $request->telefono]);
-            }
-        }
-
-        // Recargar el usuario con el perfil actualizado
-        $user = in_array($user->role, ['paciente', 'doctor']) ? User::with($user->role)->find($user->id) : $user;
+        // Admin no necesita perfil adicional
 
         return response()->json([
             'message' => 'Perfil actualizado exitosamente',
@@ -223,8 +156,8 @@ class AuthController extends Controller
             $user->photo = 'avatars/' . $filename;
             $user->save();
 
-            // Recargar el usuario con el perfil actualizado
-            $user = in_array($user->role, ['paciente', 'doctor']) ? User::with($user->role)->find($user->id) : $user;
+            // Recargar el usuario
+            $user = User::find($user->id);
 
             return response()->json([
                 'message' => 'Foto de perfil subida exitosamente',

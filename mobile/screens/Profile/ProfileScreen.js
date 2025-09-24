@@ -327,38 +327,8 @@ Verifica la consola para más detalles.`,
 
           <View style={styles.infoField}>
             <Text style={styles.fieldLabel}>Rol:</Text>
-            <Text style={styles.fieldValue}>
-              {user.role === 'paciente' ? '👤 Paciente' :
-               user.role === 'doctor' ? '👨‍⚕️ Doctor' :
-               user.role === 'admin' ? '⚙️ Administrador' : 'Desconocido'}
-            </Text>
+            <Text style={styles.fieldValue}>⚙️ Administrador</Text>
           </View>
-
-          {user.role === 'paciente' && user.paciente && (
-            <>
-              <View style={styles.infoField}>
-                <Text style={styles.fieldLabel}>EPS:</Text>
-                <Text style={styles.fieldValue}>{user.paciente.eps?.nombre || 'No especificado'}</Text>
-              </View>
-              <View style={styles.infoField}>
-                <Text style={styles.fieldLabel}>Teléfono:</Text>
-                <Text style={styles.fieldValue}>{user.paciente.telefono || 'No especificado'}</Text>
-              </View>
-            </>
-          )}
-
-          {user.role === 'doctor' && user.doctor && (
-            <>
-              <View style={styles.infoField}>
-                <Text style={styles.fieldLabel}>Especialidad:</Text>
-                <Text style={styles.fieldValue}>{user.doctor.especialidad?.nombre || 'No especificado'}</Text>
-              </View>
-              <View style={styles.infoField}>
-                <Text style={styles.fieldLabel}>Licencia:</Text>
-                <Text style={styles.fieldValue}>{user.doctor.licencia || 'No especificado'}</Text>
-              </View>
-            </>
-          )}
         </View>
 
       </Animatable.View>

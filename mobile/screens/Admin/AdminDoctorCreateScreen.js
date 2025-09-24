@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { createDoctor } from '../../apis/doctoresApi';
 import { getEspecialidades } from '../../apis/especialidadesApi';
+import { getEps } from '../../apis/epsApi';
 
 const AdminDoctorCreateScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -9,14 +10,17 @@ const AdminDoctorCreateScreen = ({ navigation }) => {
     email: '',
     telefono: '',
     especialidad_id: '',
+    eps_id: '',
     start_time: '',
     end_time: ''
   });
   const [especialidadesList, setEspecialidadesList] = useState([]);
+  const [epsList, setEpsList] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchEspecialidades();
+    fetchEPS();
   }, []);
 
   const fetchEspecialidades = async () => {
@@ -26,14 +30,21 @@ const AdminDoctorCreateScreen = ({ navigation }) => {
     }
   };
 
+  const fetchEPS = async () => {
+    const result = await getEps();
+    if (result.success) {
+      setEpsList(result.data);
+    }
+  };
+
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
   };
 
   const handleSubmit = async () => {
     if (!formData.nombre || !formData.email || !formData.telefono ||
-        !formData.especialidad_id || !formData.start_time || !formData.end_time) {
-      Alert.alert('Error', 'Todos los campos son obligatorios');
+        !formData.especialidad_id || !formData.eps_id) {
+      Alert.alert('Error', 'Los campos marcados con * son obligatorios');
       return;
     }
 

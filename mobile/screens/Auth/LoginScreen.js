@@ -77,16 +77,8 @@ const LoginScreen = ({ navigation }) => {
         await AsyncStorage.removeItem('rememberedEmail');
       }
 
-      const role = result.data.user.role;
-      if (role === 'paciente') {
-        navigation.replace("PatientDashboard");
-      } else if (role === 'doctor') {
-        navigation.replace("DoctorDashboard");
-      } else if (role === 'admin') {
-        navigation.replace("AdminDashboard");
-      } else {
-        navigation.replace("Home"); // fallback
-      }
+      // Todos los usuarios ahora son admin
+      navigation.replace("AdminDashboard");
     } else {
       Alert.alert('Error', result.error);
     }

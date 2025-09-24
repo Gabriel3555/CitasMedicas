@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { createPaciente } from '../../apis/pacientesApi';
-import { getEPS } from '../../apis/epsApi';
+import { getEps } from '../../apis/epsApi';
 
 const AdminPacienteCreateScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -18,9 +18,17 @@ const AdminPacienteCreateScreen = ({ navigation }) => {
   }, []);
 
   const fetchEPS = async () => {
-    const result = await getEPS();
-    if (result.success) {
-      setEpsList(result.data);
+    try {
+      const result = await getEps();
+      if (result.success) {
+        setEpsList(result.data);
+      } else {
+        console.error('Error al cargar EPS:', result.error);
+        Alert.alert('Error', 'No se pudieron cargar las EPS');
+      }
+    } catch (error) {
+      console.error('Error en fetchEPS:', error);
+      Alert.alert('Error', 'Error al conectar con el servidor');
     }
   };
 
