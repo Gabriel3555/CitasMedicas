@@ -37,21 +37,33 @@ const AdminPacienteCreateScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
+    console.log('AdminPacienteCreateScreen - handleSubmit called with formData:', formData);
+    
     if (!formData.nombre || !formData.email || !formData.telefono || !formData.eps_id) {
+      console.log('AdminPacienteCreateScreen - Validation failed, missing required fields:', {
+        nombre: !!formData.nombre,
+        email: !!formData.email,
+        telefono: !!formData.telefono,
+        eps_id: !!formData.eps_id
+      });
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
     }
 
+    console.log('AdminPacienteCreateScreen - Validation passed, creating paciente with data:', formData);
     setLoading(true);
     const result = await createPaciente(formData);
+    console.log('AdminPacienteCreateScreen - createPaciente result:', result);
     setLoading(false);
 
     if (result.success) {
+      console.log('AdminPacienteCreateScreen - Paciente created successfully');
       Alert.alert('Éxito', 'Paciente creado correctamente', [
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);
     } else {
-      Alert.alert('Error', result.error);
+      console.error('AdminPacienteCreateScreen - Error creating paciente:', result.error);
+      Alert.alert('Error', result.error || 'Error desconocido al crear paciente');
     }
   };
 
@@ -93,8 +105,9 @@ const AdminPacienteCreateScreen = ({ navigation }) => {
           />
         </View>
 
+
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>EPS</Text>
+          <Text style={styles.label}>EPS *</Text>
           <View style={styles.pickerContainer}>
             {epsList.map((eps) => (
               <TouchableOpacity

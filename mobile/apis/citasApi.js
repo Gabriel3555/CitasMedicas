@@ -54,14 +54,6 @@ export const getCitaCompleta = async (id) => {
   }
 };
 
-export const updateCitaStatus = async (id, status) => {
-  try {
-    const response = await api.put(`/citas/${id}/status`, { status });
-    return { success: true, data: response.data };
-  } catch (error) {
-    return { success: false, error: error.response?.data?.error || 'Error al actualizar status de cita' };
-  }
-};
 
 export const getMyCitas = async () => {
   try {

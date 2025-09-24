@@ -9,7 +9,6 @@ const PacienteDetalleScreen = ({ route, navigation }) => {
       <Text style={styles.title}>Detalle Paciente</Text>
       <Text style={styles.text}>ID: {paciente.id}</Text>
       <Text style={styles.text}>Nombre: {paciente.nombre}</Text>
-      <Text style={styles.text}>Documento: {paciente.documento}</Text>
       <Text style={styles.text}>Email: {paciente.email || "N/A"}</Text>
       <Text style={styles.text}>Teléfono: {paciente.telefono || "N/A"}</Text>
       <Text style={styles.text}>EPS: {paciente.eps?.nombre || "N/A"}</Text>

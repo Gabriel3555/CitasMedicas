@@ -48,7 +48,6 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/citas', [CitasController::class, 'store']);
     Route::get('/citas/available-slots', [CitasController::class, 'getAvailableSlots']);
     Route::put('/citas/{id}', [CitasController::class, 'update']);
-    Route::put('/citas/{id}/status', [CitasController::class, 'updateStatus']);
     Route::delete('/citas/{id}', [CitasController::class, 'destroy']);
     Route::get('/citas/{id}', [CitasController::class, 'show']);
     Route::get('/citas/{id}/detalle', [CitasController::class, 'citaCompleta']);

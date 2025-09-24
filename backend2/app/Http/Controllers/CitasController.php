@@ -159,7 +159,6 @@ class CitasController extends Controller
         $citaData = $request->all();
         $citaData['pacientes_id'] = $pacientes_id;
         $citaData['doctor_id'] = $doctor_id;
-        $citaData['status'] = 'pending';
 
         \Log::info('CitasController@store - Creating appointment', [
             'cita_data' => $citaData
@@ -187,7 +186,6 @@ class CitasController extends Controller
             'pacientes_id' => 'required|exists:pacientes,id',
             'doctor_id'    => 'required|exists:doctores,id',
             'fecha'        => 'required|date',
-            'status'       => 'nullable|in:pending,accepted,rejected,completed,cancelled',
         ]);
 
         if ($validate->fails()) {
@@ -241,32 +239,6 @@ class CitasController extends Controller
         return response()->json($cita, 200);
     }
 
-    public function updateStatus(Request $request, $id)
-    {
-        $user = Auth::user();
-
-        // Solo administradores pueden actualizar el status de citas
-        if ($user->role !== 'admin') {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        $validate = Validator::make($request->all(), [
-            'status' => 'required|in:pending,accepted,rejected,completed,cancelled',
-        ]);
-
-        if ($validate->fails()) {
-            return response()->json($validate->errors(), 400);
-        }
-
-        $cita = Cita::find($id);
-
-        if (!$cita) {
-            return response()->json(['message' => 'Cita not found'], 404);
-        }
-
-        $cita->update(['status' => $request->status]);
-        return response()->json($cita, 200);
-    }
 
     public function getAvailableSlots(Request $request)
     {

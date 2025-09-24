@@ -44,27 +44,6 @@ const AdminCitasListScreen = ({ navigation }) => {
     );
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return '#ffc107';
-      case 'accepted': return '#28a745';
-      case 'rejected': return '#dc3545';
-      case 'completed': return '#6c757d';
-      case 'cancelled': return '#6c757d';
-      default: return '#6c757d';
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'pending': return 'Pendiente';
-      case 'accepted': return 'Aceptada';
-      case 'rejected': return 'Rechazada';
-      case 'completed': return 'Completada';
-      case 'cancelled': return 'Cancelada';
-      default: return status;
-    }
-  };
 
   const renderCita = ({ item }) => (
     <View style={styles.citaItem}>
@@ -72,9 +51,6 @@ const AdminCitasListScreen = ({ navigation }) => {
         <Text style={styles.citaPaciente}>Paciente: {item.paciente?.nombre}</Text>
         <Text style={styles.citaDoctor}>Doctor: Dr. {item.doctor?.nombre}</Text>
         <Text style={styles.citaFecha}>Fecha: {item.fecha} - Hora: {item.hora}</Text>
-        <Text style={[styles.citaStatus, { backgroundColor: getStatusColor(item.status) }]}>
-          {getStatusText(item.status)}
-        </Text>
       </View>
       <View style={styles.actions}>
         <TouchableOpacity
@@ -152,14 +128,6 @@ const styles = StyleSheet.create({
   citaPaciente: { fontSize: 16, fontWeight: 'bold', marginBottom: 3 },
   citaDoctor: { fontSize: 14, marginBottom: 3 },
   citaFecha: { fontSize: 14, marginBottom: 5 },
-  citaStatus: {
-    color: 'white',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 3,
-    fontSize: 12,
-    alignSelf: 'flex-start'
-  },
   actions: { flexDirection: 'row', gap: 10 },
   editBtn: {
     backgroundColor: '#007bff',

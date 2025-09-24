@@ -6,7 +6,6 @@ import { getEps } from '../../apis/epsApi';
 
 const PacienteCreateScreen = ({ navigation }) => {
   const [nombre, setNombre] = useState("");
-  const [documento, setDocumento] = useState("");
   const [email, setEmail] = useState("");
   const [telefono, setTelefono] = useState("");
   const [eps_id, setEpsId] = useState("");
@@ -24,12 +23,12 @@ const PacienteCreateScreen = ({ navigation }) => {
   }, []);
 
   const handleCreate = async () => {
-    if (!nombre || !documento || !email || !telefono || !eps_id) {
+    if (!nombre || !email || !telefono || !eps_id) {
       Alert.alert('Error', 'Por favor completa todos los campos');
       return;
     }
     setLoading(true);
-    const result = await createPaciente({ nombre, documento, email, telefono, eps_id });
+    const result = await createPaciente({ nombre, email, telefono, eps_id });
     setLoading(false);
     if (result.success) {
       Alert.alert('Éxito', 'Paciente creado exitosamente');
@@ -44,7 +43,6 @@ const PacienteCreateScreen = ({ navigation }) => {
       <Text style={styles.title}>Crear Paciente</Text>
 
       <TextInput style={styles.input} placeholder="Nombre" value={nombre} onChangeText={setNombre} />
-      <TextInput style={styles.input} placeholder="Documento" value={documento} onChangeText={setDocumento} />
       <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
       <TextInput style={styles.input} placeholder="Teléfono" value={telefono} onChangeText={setTelefono} />
 

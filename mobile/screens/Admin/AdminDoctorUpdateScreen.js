@@ -11,9 +11,7 @@ const AdminDoctorUpdateScreen = ({ navigation, route }) => {
     email: doctor.email || '',
     telefono: doctor.telefono || '',
     especialidad_id: doctor.especialidad_id?.toString() || '',
-    eps_id: doctor.eps_id?.toString() || '',
-    start_time: doctor.start_time || '',
-    end_time: doctor.end_time || ''
+    eps_id: doctor.eps_id?.toString() || ''
   });
   const [especialidadesList, setEspecialidadesList] = useState([]);
   const [epsList, setEpsList] = useState([]);
@@ -146,29 +144,9 @@ const AdminDoctorUpdateScreen = ({ navigation, route }) => {
           </View>
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Hora de inicio</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.start_time}
-            onChangeText={(value) => handleInputChange('start_time', value)}
-            placeholder="08:00"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Hora de fin (opcional)</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.end_time}
-            onChangeText={(value) => handleInputChange('end_time', value)}
-            placeholder="17:00"
-          />
-        </View>
-
         <View style={styles.infoContainer}>
           <Text style={styles.infoText}>💡 Los campos marcados con * son obligatorios</Text>
-          <Text style={styles.infoText}>💡 Los horarios de inicio y fin son opcionales</Text>
+          <Text style={styles.infoText}>💡 Para configurar horarios, usa el botón "⏰ Horario" en la lista de doctores</Text>
         </View>
 
         <TouchableOpacity

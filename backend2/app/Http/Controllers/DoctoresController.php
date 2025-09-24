@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Doctor;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class DoctoresController extends Controller
@@ -22,6 +24,12 @@ class DoctoresController extends Controller
     }
 
     public function store(Request $request) {
+        \Log::info('DoctoresController@store - Request received', [
+            'params' => $request->all(),
+            'user_id' => Auth::id(),
+            'user_role' => Auth::user()->role ?? 'unknown'
+        ]);
+
         $validate = Validator::make($request->all(), [
             'nombre' => 'required|string|unique:doctores,nombre',
             'telefono' => 'required|string|max:255',
@@ -33,11 +41,36 @@ class DoctoresController extends Controller
         ]);
 
         if ($validate->fails()) {
-            return response()->json($validate->errors(), 400);
+            \Log::error('DoctoresController@store - Validation failed', [
+                'errors' => $validate->errors(),
+                'params' => $request->all()
+            ]);
+            return response()->json([
+                'error' => 'Validation failed',
+                'details' => $validate->errors()
+            ], 400);
         }
 
-        $doctor = Doctor::create($request->all());
-        return response()->json($doctor, 201);
+        \Log::info('DoctoresController@store - Validation passed, creating doctor');
+
+        try {
+            $doctor = Doctor::create($request->all());
+            \Log::info('DoctoresController@store - Doctor created successfully', [
+                'doctor_id' => $doctor->id,
+                'doctor_data' => $doctor->toArray()
+            ]);
+            return response()->json($doctor, 201);
+        } catch (\Exception $e) {
+            \Log::error('DoctoresController@store - Exception during creation', [
+                'exception_message' => $e->getMessage(),
+                'exception_trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            return response()->json([
+                'error' => 'Error creating doctor',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function update(Request $request, $id) {

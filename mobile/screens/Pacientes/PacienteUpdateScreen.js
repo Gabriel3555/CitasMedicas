@@ -7,7 +7,6 @@ import { getEps } from '../../apis/epsApi';
 const PacienteUpdateScreen = ({ route, navigation }) => {
   const { paciente } = route.params;
   const [nombre, setNombre] = useState(paciente.nombre);
-  const [documento, setDocumento] = useState(paciente.documento);
   const [email, setEmail] = useState(paciente.email || "");
   const [telefono, setTelefono] = useState(paciente.telefono || "");
   const [eps_id, setEpsId] = useState(paciente.eps_id?.toString() || "");
@@ -25,12 +24,12 @@ const PacienteUpdateScreen = ({ route, navigation }) => {
   }, []);
 
   const handleUpdate = async () => {
-    if (!nombre || !documento || !email || !telefono || !eps_id) {
+    if (!nombre || !email || !telefono || !eps_id) {
       Alert.alert('Error', 'Por favor completa todos los campos');
       return;
     }
     setLoading(true);
-    const result = await updatePaciente(paciente.id, { nombre, documento, email, telefono, eps_id });
+    const result = await updatePaciente(paciente.id, { nombre, email, telefono, eps_id });
     setLoading(false);
     if (result.success) {
       Alert.alert('Éxito', 'Paciente actualizado exitosamente');
@@ -45,7 +44,6 @@ const PacienteUpdateScreen = ({ route, navigation }) => {
       <Text style={styles.title}>Actualizar Paciente</Text>
 
       <TextInput style={styles.input} placeholder="Nombre" value={nombre} onChangeText={setNombre} />
-      <TextInput style={styles.input} placeholder="Documento" value={documento} onChangeText={setDocumento} />
       <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
       <TextInput style={styles.input} placeholder="Teléfono" value={telefono} onChangeText={setTelefono} />
 

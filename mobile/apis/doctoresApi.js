@@ -10,11 +10,21 @@ export const getDoctores = async () => {
 };
 
 export const createDoctor = async (doctorData) => {
+  console.log('doctoresApi: createDoctor called with data:', doctorData);
   try {
+    console.log('doctoresApi: Making POST request to /doctores');
     const response = await api.post('/doctores', doctorData);
+    console.log('doctoresApi: createDoctor request successful', response.data);
     return { success: true, data: response.data };
   } catch (error) {
-    return { success: false, error: error.response?.data?.error || 'Error al crear doctor' };
+    console.error('doctoresApi: createDoctor request failed', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+      fullError: error
+    });
+    return { success: false, error: error.response?.data?.error || error.response?.data?.message || 'Error al crear doctor' };
   }
 };
 

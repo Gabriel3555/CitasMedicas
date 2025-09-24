@@ -14,9 +14,7 @@ class Paciente extends Model
         'nombre',
         'email',
         'telefono',
-        'documento',
-        'eps_id',
-        'user_id'
+        'eps_id'
     ];
 
     public function citas()

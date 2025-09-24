@@ -56,7 +56,7 @@ const AdminDoctoresListScreen = ({ navigation }) => {
           Horario: {item.start_time} - {item.end_time}
         </Text>
       </View>
-      <View style={styles.actions}>
+      <View style={styles.actionsContainer}>
         <TouchableOpacity
           style={styles.scheduleBtn}
           onPress={() => navigation.navigate('AdminDoctorSchedule', { doctor: item })}
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   doctorItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     padding: 15,
     borderWidth: 1,
     borderColor: '#ccc',
@@ -137,26 +137,36 @@ const styles = StyleSheet.create({
   doctorInfo: { flex: 1 },
   doctorName: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
   doctorDetails: { fontSize: 14, color: '#666' },
-  actions: { flexDirection: 'row', gap: 10 },
+  actionsContainer: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+    width: 100
+  },
   scheduleBtn: {
     backgroundColor: '#17a2b8',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 5
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 8
   },
   editBtn: {
     backgroundColor: '#007bff',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 5
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 8
   },
   deleteBtn: {
     backgroundColor: '#dc3545',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 5
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+    alignItems: 'center'
   },
-  btnText: { color: 'white', fontSize: 12 }
+  btnText: { color: 'white', fontSize: 12, textAlign: 'center' }
 });
 
 export default AdminDoctoresListScreen;

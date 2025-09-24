@@ -68,11 +68,9 @@ class AuthTest extends TestCase
         ]);
 
         Paciente::create([
-            'user_id' => $user->id,
             'nombre' => $user->name,
             'email' => $user->email,
             'telefono' => '1234567890',
-            'documento' => '123456789',
             'eps_id' => 1
         ]);
 

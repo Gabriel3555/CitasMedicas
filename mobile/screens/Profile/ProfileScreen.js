@@ -200,34 +200,12 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const handlePhotoUpload = () => {
-    console.log('Photo upload button pressed');
-    console.log('Current state:', {
-      selectedImage,
-      uploading,
-      user: user ? user.name : 'No user',
-      photo: photo ? 'Has photo' : 'No photo',
-      photoLoading
-    });
-
     if (uploading) {
       Alert.alert('Info', 'Ya se está subiendo una imagen. Espera un momento.');
       return;
     }
 
-    Alert.alert(
-      'Debug Info',
-      `Botón presionado correctamente.
-Estado actual:
-- Usuario: ${user ? user.name : 'No cargado'}
-- Foto actual: ${photo ? 'Sí' : 'No'}
-- Subiendo: ${uploading ? 'Sí' : 'No'}
-- Cargando: ${photoLoading ? 'Sí' : 'No'}
-
-Verifica la consola para más detalles.`,
-      [
-        { text: 'OK', onPress: selectImageSource }
-      ]
-    );
+    selectImageSource();
   };
 
   if (loading) {

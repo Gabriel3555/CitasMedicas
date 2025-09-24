@@ -38,7 +38,7 @@ const PacientesListScreen = ({ navigation }) => {
               style={styles.item}
               onPress={() => navigation.navigate("PacienteDetalle", { paciente: item })}
             >
-              <Text style={styles.text}>{item.nombre} - {item.documento}</Text>
+              <Text style={styles.text}>{item.nombre}</Text>
             </TouchableOpacity>
           )}
         />
