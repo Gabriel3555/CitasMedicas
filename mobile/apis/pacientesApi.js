@@ -10,20 +10,10 @@ export const getPacientes = async () => {
 };
 
 export const createPaciente = async (pacienteData) => {
-  console.log('pacientesApi: createPaciente called with data:', pacienteData);
   try {
-    console.log('pacientesApi: Making POST request to /pacientes');
     const response = await api.post('/pacientes', pacienteData);
-    console.log('pacientesApi: createPaciente request successful', response.data);
     return { success: true, data: response.data };
   } catch (error) {
-    console.error('pacientesApi: createPaciente request failed', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message,
-      fullError: error
-    });
     return { success: false, error: error.response?.data?.error || error.response?.data?.message || 'Error al crear paciente' };
   }
 };

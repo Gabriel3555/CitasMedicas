@@ -5,6 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { createCita, getAvailableSlots } from '../../apis/citasApi';
 import { getPacientes } from '../../apis/pacientesApi';
 import { getDoctores } from '../../apis/doctoresApi';
+import { getEspecialidades } from '../../apis/especialidadesApi';
 
 const AdminCitaCreateScreen = ({ navigation }) => {
   // Función auxiliar para formatear fechas
@@ -23,10 +24,13 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   });
   const [pacientes, setPacientes] = useState([]);
   const [doctores, setDoctores] = useState([]);
+  const [especialidades, setEspecialidades] = useState([]);
+  const [selectedEspecialidad, setSelectedEspecialidad] = useState(null);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingPacientes, setLoadingPacientes] = useState(true);
   const [loadingDoctores, setLoadingDoctores] = useState(true);
+  const [loadingEspecialidades, setLoadingEspecialidades] = useState(true);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -34,10 +38,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   // Limpiar slots cuando no hay doctor o fecha seleccionados
   useEffect(() => {
     if (!formData.doctor_id || !formData.fecha) {
-      console.log('AdminCitaCreateScreen - Clearing slots due to missing doctor or date', {
-        doctor_id: formData.doctor_id,
-        fecha: formData.fecha
-      });
       setAvailableSlots([]);
     }
   }, [formData.doctor_id, formData.fecha]);
@@ -57,11 +57,30 @@ const AdminCitaCreateScreen = ({ navigation }) => {
     }
     setLoadingPacientes(false);
 
-    // Cargar doctores
+    // Cargar especialidades
+    setLoadingEspecialidades(true);
+    const especialidadesResult = await getEspecialidades();
+    if (especialidadesResult.success) {
+      setEspecialidades(especialidadesResult.data);
+    } else {
+      Alert.alert('Error', 'No se pudieron cargar las especialidades');
+    }
+    setLoadingEspecialidades(false);
+
+    // Cargar doctores (inicialmente todos)
+    await fetchDoctores();
+  };
+
+  const fetchDoctores = async (especialidadId = null) => {
     setLoadingDoctores(true);
-    const doctoresResult = await getDoctores();
+    const doctoresResult = await getDoctores(especialidadId);
     if (doctoresResult.success) {
       setDoctores(doctoresResult.data);
+      // Reset selected doctor if it's not in the filtered list
+      if (formData.doctor_id && !doctoresResult.data.find(d => d.id.toString() === formData.doctor_id)) {
+        setFormData({ ...formData, doctor_id: '', hora: '' });
+        setAvailableSlots([]);
+      }
     } else {
       Alert.alert('Error', 'No se pudieron cargar los doctores');
     }
@@ -69,11 +88,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   };
 
   const handleInputChange = (field, value) => {
-    console.log('AdminCitaCreateScreen@handleInputChange', {
-      field,
-      value,
-      previousFormData: formData
-    });
     setFormData({ ...formData, [field]: value });
   };
 
@@ -105,70 +119,30 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   };
 
   const loadAvailableSlots = async (doctorId, date) => {
-    console.log('AdminCitaCreateScreen@loadAvailableSlots - Function called', {
-      doctorId,
-      date,
-      currentState: {
-        formData,
-        availableSlotsCount: availableSlots.length,
-        loadingSlots
-      }
-    });
-
     if (!doctorId || !date) {
-      console.log('AdminCitaCreateScreen@loadAvailableSlots - Missing parameters, clearing slots', {
-        doctorId,
-        date
-      });
       setAvailableSlots([]);
       return;
     }
 
     // Validar que el doctorId sea un número válido
     if (isNaN(parseInt(doctorId))) {
-      console.log('AdminCitaCreateScreen@loadAvailableSlots - Invalid doctorId, clearing slots', {
-        doctorId,
-        doctorIdType: typeof doctorId
-      });
       setAvailableSlots([]);
       return;
     }
 
     setLoadingSlots(true);
-    console.log('AdminCitaCreateScreen@loadAvailableSlots - Starting slot loading', {
-      doctorId,
-      date,
-      timestamp: new Date().toISOString()
-    });
 
     const result = await getAvailableSlots(doctorId, date);
 
-    console.log('AdminCitaCreateScreen@loadAvailableSlots - API result received', {
-      success: result.success,
-      error: result.error,
-      data: result.data
-    });
-
     if (result.success) {
       const slots = result.data.slots || [];
-      console.log('AdminCitaCreateScreen@loadAvailableSlots - Setting available slots', {
-        slotsCount: slots.length,
-        slots: slots
-      });
       setAvailableSlots(slots);
     } else {
-      console.error('AdminCitaCreateScreen@loadAvailableSlots - Error loading slots', {
-        error: result.error
-      });
       setAvailableSlots([]);
       Alert.alert('Error', 'No se pudieron cargar los horarios disponibles');
     }
 
     setLoadingSlots(false);
-    console.log('AdminCitaCreateScreen@loadAvailableSlots - Function completed', {
-      finalAvailableSlotsCount: result.success ? (result.data.slots || []).length : 0,
-      loadingSlots: false
-    });
   };
 
   const validateDate = (date) => {
@@ -191,54 +165,25 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
-    console.log('AdminCitaCreateScreen@handleSubmit - Function called', {
-      formData,
-      validationChecks: {
-        hasPaciente: !!formData.pacientes_id,
-        hasDoctor: !!formData.doctor_id,
-        hasFecha: !!formData.fecha,
-        hasHora: !!formData.hora
-      }
-    });
-
     if (!formData.pacientes_id || !formData.doctor_id || !formData.fecha || !formData.hora) {
-      console.log('AdminCitaCreateScreen@handleSubmit - Validation failed: missing fields');
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
     }
 
     if (!validateDate(formData.fecha)) {
-      console.log('AdminCitaCreateScreen@handleSubmit - Date validation failed', {
-        fecha: formData.fecha,
-        isValid: validateDate(formData.fecha)
-      });
       Alert.alert('Error', 'La fecha debe estar en formato YYYY-MM-DD y no puede ser anterior a hoy');
       return;
     }
 
-    console.log('AdminCitaCreateScreen@handleSubmit - Validation passed, creating appointment', {
-      appointmentData: formData
-    });
-
     setLoading(true);
     const result = await createCita(formData);
 
-    console.log('AdminCitaCreateScreen@handleSubmit - API result received', {
-      success: result.success,
-      error: result.error,
-      data: result.data
-    });
-
     setLoading(false);
     if (result.success) {
-      console.log('AdminCitaCreateScreen@handleSubmit - Appointment created successfully');
       Alert.alert('Éxito', 'Cita creada correctamente', [
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);
     } else {
-      console.error('AdminCitaCreateScreen@handleSubmit - Appointment creation failed', {
-        error: result.error
-      });
       Alert.alert('Error', result.error);
     }
   };
@@ -279,6 +224,34 @@ const AdminCitaCreateScreen = ({ navigation }) => {
         <View style={styles.formSection}>
           <Text style={styles.sectionTitle}>👨‍⚕️ Información del Doctor</Text>
 
+          <Text style={styles.label}>Seleccionar Especialidad:</Text>
+          {loadingEspecialidades ? (
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>Cargando especialidades...</Text>
+            </View>
+          ) : (
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={selectedEspecialidad?.id || ''}
+                onValueChange={(itemValue) => {
+                  const especialidad = especialidades.find(e => e.id === itemValue);
+                  setSelectedEspecialidad(especialidad);
+                  fetchDoctores(itemValue || null);
+                }}
+                style={styles.picker}
+              >
+                <Picker.Item label="🏥 Todas las especialidades..." value="" />
+                {especialidades.map(especialidad => (
+                  <Picker.Item
+                    key={especialidad.id}
+                    label={especialidad.nombre}
+                    value={especialidad.id}
+                  />
+                ))}
+              </Picker>
+            </View>
+          )}
+
           <Text style={styles.label}>Seleccionar Doctor:</Text>
           {loadingDoctores ? (
             <View style={styles.loadingContainer}>
@@ -289,11 +262,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
               <Picker
                 selectedValue={formData.doctor_id}
                 onValueChange={(value) => {
-                  console.log('AdminCitaCreateScreen - Doctor picker onValueChange', {
-                    selectedValue: value,
-                    selectedValueType: typeof value,
-                    currentFormData: formData
-                  });
                   // Actualizar estado y limpiar slots inmediatamente
                   const newFormData = { ...formData, doctor_id: value, hora: '' };
                   setFormData(newFormData);
@@ -334,13 +302,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
 
           <Text style={styles.label}>Hora de la Cita:</Text>
           {(() => {
-            console.log('AdminCitaCreateScreen - Rendering time slot section', {
-              loadingSlots,
-              availableSlotsCount: availableSlots.length,
-              formData,
-              availableSlots: availableSlots
-            });
-
             if (loadingSlots) {
               return (
                 <View style={styles.loadingContainer}>
@@ -353,10 +314,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
                   <Picker
                     selectedValue={formData.hora}
                     onValueChange={(value) => {
-                      console.log('AdminCitaCreateScreen - Time slot selected', {
-                        selectedValue: value,
-                        previousValue: formData.hora
-                      });
                       handleInputChange('hora', value);
                     }}
                     style={styles.picker}

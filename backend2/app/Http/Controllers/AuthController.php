@@ -16,21 +16,21 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        Log::info('Register attempt', $request->all());
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:admin',
+            'role' => 'required|in:paciente,doctor,admin',
+            'telefono' => 'nullable|string|max:20',
+            'eps_id' => 'nullable|exists:eps,id',
+            'especialidad_id' => 'nullable|exists:especialidades,id',
         ]);
 
         if ($validator->fails()) {
-            Log::error('Validation failed', $validator->errors()->toArray());
             return response()->json($validator->errors(), 400);
         }
 
-        Log::info('Validation passed, creating user');
 
         $user = User::create([
             'name' => $request->name,
@@ -39,13 +39,27 @@ class AuthController extends Controller
             'role' => $request->role,
         ]);
 
-        Log::info('User created', ['user_id' => $user->id, 'role' => $request->role]);
+        if ($request->role === 'paciente') {
+            Paciente::create([
+                'user_id' => $user->id,
+                'nombre' => $request->name,
+                'email' => $request->email,
+                'telefono' => $request->telefono ?? null,
+                'eps_id' => $request->eps_id ?? null,
+            ]);
+        } elseif ($request->role === 'doctor') {
+            Doctor::create([
+                'user_id' => $user->id,
+                'nombre' => $request->name,
+                'email' => $request->email,
+                'telefono' => $request->telefono ?? null,
+                'especialidad_id' => $request->especialidad_id ?? null,
+                'eps_id' => $request->eps_id ?? null,
+            ]);
+        }
 
-        // Admin no necesita perfil adicional
-        Log::info('Generating token');
         $token = JWTAuth::fromUser($user);
 
-        Log::info('Registration successful');
         return response()->json([
             'message' => 'Usuario registrado exitosamente',
             'user' => $user,
@@ -93,9 +107,22 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        // Agregar la URL completa de la foto si existe
         if ($user->photo) {
             $user->photo_url = url('storage/' . $user->photo);
+        }
+
+        if ($user->role === 'doctor') {
+            $doctor = Doctor::where('user_id', $user->id)->first();
+            if ($doctor) {
+                $user->doctor_profile = $doctor;
+            }
+        }
+
+        if ($user->role === 'paciente') {
+            $paciente = Paciente::where('user_id', $user->id)->first();
+            if ($paciente) {
+                $user->paciente_profile = $paciente;
+            }
         }
 
         return response()->json($user);
@@ -108,28 +135,131 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
+            'telefono' => 'sometimes|string|max:20',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
 
-        // Actualizar datos básicos del usuario
         if ($request->has('name')) {
             $user->name = $request->name;
             $user->save();
+
+            if ($user->role === 'paciente') {
+                $paciente = Paciente::where('user_id', $user->id)->first();
+                if ($paciente) {
+                    $paciente->nombre = $request->name;
+                    $paciente->save();
+                }
+            } elseif ($user->role === 'doctor') {
+                $doctor = Doctor::where('user_id', $user->id)->first();
+                if ($doctor) {
+                    $doctor->nombre = $request->name;
+                    $doctor->save();
+                }
+            }
         }
 
         if ($request->has('email')) {
             $user->email = $request->email;
             $user->save();
+
+            if ($user->role === 'paciente') {
+                $paciente = Paciente::where('user_id', $user->id)->first();
+                if ($paciente) {
+                    $paciente->email = $request->email;
+                    $paciente->save();
+                }
+            } elseif ($user->role === 'doctor') {
+                $doctor = Doctor::where('user_id', $user->id)->first();
+                if ($doctor) {
+                    $doctor->email = $request->email;
+                    $doctor->save();
+                }
+            }
         }
 
-        // Admin no necesita perfil adicional
+        // Actualizar teléfono para pacientes y doctores
+        if ($request->has('telefono')) {
+            if ($user->role === 'paciente') {
+                $paciente = Paciente::where('user_id', $user->id)->first();
+                if ($paciente) {
+                    $paciente->telefono = $request->telefono;
+                    $paciente->save();
+                }
+            } elseif ($user->role === 'doctor') {
+                $doctor = Doctor::where('user_id', $user->id)->first();
+                if ($doctor) {
+                    $doctor->telefono = $request->telefono;
+                    $doctor->save();
+                }
+            }
+        }
 
         return response()->json([
             'message' => 'Perfil actualizado exitosamente',
             'user' => $user
+        ]);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['current_password' => ['La contraseña actual es incorrecta']], 400);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json([
+            'message' => 'Contraseña cambiada exitosamente'
+        ]);
+    }
+
+    public function adminChangeUserPassword(Request $request, $user_id)
+    {
+        $admin = Auth::user();
+
+        if ($admin->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized - Admin access required'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        $user = User::find($user_id);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        if ($user->id === $admin->id) {
+            return response()->json(['error' => 'Use the regular change password endpoint for your own account'], 400);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json([
+            'message' => 'User password changed successfully',
+            'user_id' => $user->id,
+            'user_email' => $user->email
         ]);
     }
 
@@ -149,14 +279,11 @@ class AuthController extends Controller
             $file = $request->file('photo');
             $filename = time() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
 
-            // Guardar en storage/app/public/avatars usando el disco public
             $path = $file->storeAs('avatars', $filename, 'public');
 
-            // Actualizar la ruta en la base de datos (solo el nombre del archivo)
             $user->photo = 'avatars/' . $filename;
             $user->save();
 
-            // Recargar el usuario
             $user = User::find($user->id);
 
             return response()->json([

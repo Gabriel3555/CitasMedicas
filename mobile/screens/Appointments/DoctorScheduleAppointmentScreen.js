@@ -1,49 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { Picker } from '@react-native-picker/picker';
-import { getDoctores } from '../../apis/doctoresApi';
-import { getEspecialidades } from '../../apis/especialidadesApi';
-import { createCita } from '../../apis/citasApi';
+import { getPacientes, createCita } from '../../apis/citasApi';
+import { me } from '../../apis/authApi';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const ScheduleAppointmentScreen = ({ navigation }) => {
-  const [doctors, setDoctors] = useState([]);
-  const [specialties, setSpecialties] = useState([]);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [selectedSpecialty, setSelectedSpecialty] = useState(null);
+const DoctorScheduleAppointmentScreen = ({ navigation }) => {
+  const [pacientes, setPacientes] = useState([]);
+  const [selectedPaciente, setSelectedPaciente] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [doctorSchedule, setDoctorSchedule] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch specialties
-      const specialtiesResult = await getEspecialidades();
-      if (specialtiesResult.success) {
-        setSpecialties(specialtiesResult.data);
+      // Fetch patients
+      const pacientesResult = await getPacientes();
+      if (pacientesResult.success) {
+        setPacientes(pacientesResult.data);
       }
 
-      // Fetch doctors (initially all doctors)
-      await fetchDoctors();
+      // Fetch doctor schedule
+      const userResult = await me();
+      if (userResult.success && userResult.data.doctor_profile) {
+        setDoctorSchedule({
+          start_time: userResult.data.doctor_profile.start_time,
+          end_time: userResult.data.doctor_profile.end_time
+        });
+      }
     };
     fetchData();
   }, []);
-
-  const fetchDoctors = async (especialidadId = null) => {
-    const result = await getDoctores(especialidadId);
-    if (result.success) {
-      // Filter doctors that have both start_time and end_time
-      const availableDoctors = result.data.filter(doctor =>
-        doctor.start_time && doctor.end_time
-      );
-      setDoctors(availableDoctors);
-      // Reset selected doctor if it's not in the filtered list
-      if (selectedDoctor && !availableDoctors.find(d => d.id === selectedDoctor.id)) {
-        setSelectedDoctor(null);
-      }
-    }
-  };
 
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date();
@@ -58,34 +47,34 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   };
 
   const handleSchedule = async () => {
-    if (!selectedDoctor) {
-      Alert.alert('Error', 'Selecciona un doctor');
+    if (!selectedPaciente) {
+      Alert.alert('Error', 'Selecciona un paciente');
       return;
     }
 
-    // Validate schedule: weekdays and within doctor's hours
+    // Validate schedule: weekdays only
     const day = selectedDate.getDay();
     if (day === 0 || day === 6) {
       Alert.alert('Error', 'Las citas solo se pueden agendar de lunes a viernes');
       return;
     }
 
-    const hour = selectedTime.getHours();
-    const minute = selectedTime.getMinutes();
-    const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    // Validate doctor's schedule
+    if (doctorSchedule && doctorSchedule.start_time && doctorSchedule.end_time) {
+      const appointmentTime = selectedTime.toTimeString().split(' ')[0].substring(0, 5);
+      const startTime = doctorSchedule.start_time.substring(0, 5);
+      const endTime = doctorSchedule.end_time.substring(0, 5);
 
-    const startTime = selectedDoctor.start_time;
-    const endTime = selectedDoctor.end_time;
-
-    if (timeString < startTime || timeString >= endTime) {
-      Alert.alert('Error', `Las citas deben ser entre ${startTime} y ${endTime}`);
-      return;
+      if (appointmentTime < startTime || appointmentTime >= endTime) {
+        Alert.alert('Error', `La hora seleccionada está fuera de su horario laboral (${startTime} - ${endTime})`);
+        return;
+      }
     }
 
     const citaData = {
-      doctor_id: selectedDoctor.id,
+      pacientes_id: selectedPaciente.id,
       fecha: selectedDate.toISOString().split('T')[0],
-      hora: timeString,
+      hora: selectedTime.toTimeString().split(' ')[0].substring(0, 5),
     };
 
     const result = await createCita(citaData);
@@ -108,55 +97,34 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContent}
       >
-        <Text style={styles.title}>Agendar Cita</Text>
+        <Text style={styles.title}>Agendar Cita para Paciente</Text>
 
-        <Text style={styles.label}>Selecciona una Especialidad:</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={selectedSpecialty?.id || ''}
-            onValueChange={(itemValue) => {
-              const specialty = specialties.find(s => s.id === itemValue);
-              setSelectedSpecialty(specialty);
-              fetchDoctors(itemValue || null);
-            }}
-            style={styles.picker}
-          >
-            <Picker.Item label="Todas las especialidades..." value="" />
-            {specialties.map(specialty => (
-              <Picker.Item
-                key={specialty.id}
-                label={specialty.nombre}
-                value={specialty.id}
-              />
-            ))}
-          </Picker>
-        </View>
-
-        <Text style={styles.label}>Selecciona un Doctor:</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={selectedDoctor?.id || ''}
-            onValueChange={(itemValue) => {
-              const doctor = doctors.find(d => d.id === itemValue);
-              setSelectedDoctor(doctor);
-            }}
-            style={styles.picker}
-          >
-            <Picker.Item label="Selecciona un doctor..." value="" />
-            {doctors.map(doctor => (
-              <Picker.Item
-                key={doctor.id}
-                label={`${doctor.nombre} - ${typeof doctor.especialidad === 'object' ? doctor.especialidad?.nombre || 'Sin especialidad' : doctor.especialidad || 'Sin especialidad'}`}
-                value={doctor.id}
-              />
-            ))}
-          </Picker>
-        </View>
-        {selectedDoctor && (
+        {doctorSchedule && doctorSchedule.start_time && doctorSchedule.end_time && (
           <Text style={styles.scheduleInfo}>
-            Horario: {selectedDoctor.start_time} - {selectedDoctor.end_time}
+            Su horario laboral: {doctorSchedule.start_time.substring(0, 5)} - {doctorSchedule.end_time.substring(0, 5)}
           </Text>
         )}
+
+        <Text style={styles.label}>Selecciona un Paciente:</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={selectedPaciente?.id || ''}
+            onValueChange={(itemValue) => {
+              const paciente = pacientes.find(p => p.id === itemValue);
+              setSelectedPaciente(paciente);
+            }}
+            style={styles.picker}
+          >
+            <Picker.Item label="Selecciona un paciente..." value="" />
+            {pacientes.map(paciente => (
+              <Picker.Item
+                key={paciente.id}
+                label={`${paciente.nombre} - ${paciente.email}`}
+                value={paciente.id}
+              />
+            ))}
+          </Picker>
+        </View>
 
         <Text style={styles.label}>Fecha:</Text>
         <TouchableOpacity
@@ -206,7 +174,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
         )}
 
         <TouchableOpacity style={styles.button} onPress={handleSchedule}>
-          <Text style={styles.buttonText}>Agendar</Text>
+          <Text style={styles.buttonText}>Agendar Cita</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -218,6 +186,7 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 100 },
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
+  scheduleInfo: { fontSize: 16, color: '#007AFF', textAlign: 'center', marginBottom: 20, fontWeight: 'bold' },
   label: { fontSize: 16, marginVertical: 10 },
   pickerContainer: {
     borderWidth: 1,
@@ -227,13 +196,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa"
   },
   picker: { height: 50, width: '100%' },
-  scheduleInfo: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 5,
-    textAlign: "center",
-    fontStyle: "italic"
-  },
   pickerButton: {
     borderWidth: 1,
     borderColor: "#007AFF",
@@ -252,4 +214,4 @@ const styles = StyleSheet.create({
   buttonText: { color: "white", textAlign: "center", fontWeight: "bold" },
 });
 
-export default ScheduleAppointmentScreen;
+export default DoctorScheduleAppointmentScreen;

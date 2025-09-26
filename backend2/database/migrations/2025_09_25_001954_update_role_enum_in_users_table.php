@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,9 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['paciente', 'doctor', 'admin'])->default('paciente')->change();
-        });
+        // Update enum to include all three roles
+        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('paciente', 'doctor', 'admin') DEFAULT 'paciente'");
     }
 
     /**
@@ -21,8 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['paciente', 'doctor', 'admin'])->change();
-        });
+        // Revert enum back to only admin
+        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin') DEFAULT 'admin'");
     }
 };

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal } from 'react-native';
 import { updatePaciente } from '../../apis/pacientesApi';
 import { getEps } from '../../apis/epsApi';
+import { adminChangeUserPassword } from '../../apis/authApi';
 
 const AdminPacienteUpdateScreen = ({ navigation, route }) => {
   const { paciente } = route.params;
@@ -13,6 +14,10 @@ const AdminPacienteUpdateScreen = ({ navigation, route }) => {
   });
   const [epsList, setEpsList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     fetchEPS();
@@ -24,11 +29,9 @@ const AdminPacienteUpdateScreen = ({ navigation, route }) => {
       if (result.success) {
         setEpsList(result.data);
       } else {
-        console.error('Error al cargar EPS:', result.error);
         Alert.alert('Error', 'No se pudieron cargar las EPS');
       }
     } catch (error) {
-      console.error('Error en fetchEPS:', error);
       Alert.alert('Error', 'Error al conectar con el servidor');
     }
   };
@@ -51,6 +54,36 @@ const AdminPacienteUpdateScreen = ({ navigation, route }) => {
       Alert.alert('Éxito', 'Paciente actualizado correctamente', [
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);
+    } else {
+      Alert.alert('Error', result.error);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      Alert.alert('Error', 'Todos los campos son obligatorios');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'Las contraseñas no coinciden');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    setChangingPassword(true);
+    const result = await adminChangeUserPassword(paciente.user_id, newPassword, confirmPassword);
+    setChangingPassword(false);
+
+    if (result.success) {
+      Alert.alert('Éxito', 'Contraseña cambiada correctamente');
+      setShowPasswordModal(false);
+      setNewPassword('');
+      setConfirmPassword('');
     } else {
       Alert.alert('Error', result.error);
     }
@@ -142,7 +175,68 @@ const AdminPacienteUpdateScreen = ({ navigation, route }) => {
             {loading ? 'Actualizando...' : 'Actualizar Paciente'}
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.changePasswordBtn}
+          onPress={() => setShowPasswordModal(true)}
+        >
+          <Text style={styles.changePasswordBtnText}>🔒 Cambiar Contraseña</Text>
+        </TouchableOpacity>
       </View>
+
+      {/* Change Password Modal */}
+      <Modal
+        visible={showPasswordModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowPasswordModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
+            <Text style={styles.modalSubtitle}>Usuario: {paciente.email}</Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Nueva contraseña"
+              secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Confirmar nueva contraseña"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => {
+                  setShowPasswordModal(false);
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmButton]}
+                onPress={handleChangePassword}
+                disabled={changingPassword}
+              >
+                <Text style={styles.confirmButtonText}>
+                  {changingPassword ? 'Cambiando...' : 'Cambiar'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -200,7 +294,69 @@ const styles = StyleSheet.create({
     marginTop: 20
   },
   submitBtnDisabled: { backgroundColor: '#ccc' },
-  submitBtnText: { color: 'white', fontSize: 16, fontWeight: 'bold' }
+  submitBtnText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  changePasswordBtn: {
+    backgroundColor: '#28a745',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10
+  },
+  changePasswordBtnText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
+    color: '#333',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#666',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: '#6c757d',
+  },
+  cancelButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  confirmButton: {
+    backgroundColor: '#28a745',
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  }
 });
 
 export default AdminPacienteUpdateScreen;

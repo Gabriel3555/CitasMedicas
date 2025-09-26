@@ -52,14 +52,7 @@ const AdminCitaUpdateScreen = ({ navigation, route }) => {
   };
 
   const loadAvailableSlots = async (doctorId, date) => {
-    console.log('AdminCitaUpdateScreen@loadAvailableSlots - Function called', {
-      doctorId,
-      date,
-      currentCitaId: cita.id
-    });
-
     if (!doctorId || !date) {
-      console.log('AdminCitaUpdateScreen@loadAvailableSlots - Missing parameters, clearing slots');
       setAvailableSlots([]);
       return;
     }
@@ -69,7 +62,7 @@ const AdminCitaUpdateScreen = ({ navigation, route }) => {
 
     if (result.success) {
       let slots = result.data.slots || [];
-      
+
       // Si estamos editando la misma cita, incluir la hora actual como disponible
       if (cita.doctor_id.toString() === doctorId && cita.fecha === date) {
         const currentSlot = {
@@ -78,23 +71,16 @@ const AdminCitaUpdateScreen = ({ navigation, route }) => {
           label: `${cita.hora} (Hora actual)`,
           disponible: true
         };
-        
+
         // Verificar si la hora actual ya está en los slots disponibles
         const existingSlot = slots.find(slot => slot.hora === cita.hora);
         if (!existingSlot) {
           slots.unshift(currentSlot); // Agregar al inicio
         }
       }
-      
-      console.log('AdminCitaUpdateScreen@loadAvailableSlots - Setting available slots', {
-        slotsCount: slots.length,
-        slots: slots
-      });
+
       setAvailableSlots(slots);
     } else {
-      console.error('AdminCitaUpdateScreen@loadAvailableSlots - Error loading slots', {
-        error: result.error
-      });
       setAvailableSlots([]);
       Alert.alert('Error', 'No se pudieron cargar los horarios disponibles');
     }

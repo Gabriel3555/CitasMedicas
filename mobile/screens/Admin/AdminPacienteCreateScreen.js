@@ -23,11 +23,9 @@ const AdminPacienteCreateScreen = ({ navigation }) => {
       if (result.success) {
         setEpsList(result.data);
       } else {
-        console.error('Error al cargar EPS:', result.error);
         Alert.alert('Error', 'No se pudieron cargar las EPS');
       }
     } catch (error) {
-      console.error('Error en fetchEPS:', error);
       Alert.alert('Error', 'Error al conectar con el servidor');
     }
   };
@@ -37,32 +35,27 @@ const AdminPacienteCreateScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
-    console.log('AdminPacienteCreateScreen - handleSubmit called with formData:', formData);
-    
     if (!formData.nombre || !formData.email || !formData.telefono || !formData.eps_id) {
-      console.log('AdminPacienteCreateScreen - Validation failed, missing required fields:', {
-        nombre: !!formData.nombre,
-        email: !!formData.email,
-        telefono: !!formData.telefono,
-        eps_id: !!formData.eps_id
-      });
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
     }
 
-    console.log('AdminPacienteCreateScreen - Validation passed, creating paciente with data:', formData);
     setLoading(true);
     const result = await createPaciente(formData);
-    console.log('AdminPacienteCreateScreen - createPaciente result:', result);
     setLoading(false);
 
     if (result.success) {
-      console.log('AdminPacienteCreateScreen - Paciente created successfully');
-      Alert.alert('Éxito', 'Paciente creado correctamente', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      const paciente = result.data.paciente;
+      const user = result.data.user;
+
+      Alert.alert(
+        'Éxito',
+        `Paciente creado correctamente.\n\nCuenta de usuario creada:\nEmail: ${user.email}\nContraseña: ${user.default_password}`,
+        [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]
+      );
     } else {
-      console.error('AdminPacienteCreateScreen - Error creating paciente:', result.error);
       Alert.alert('Error', result.error || 'Error desconocido al crear paciente');
     }
   };

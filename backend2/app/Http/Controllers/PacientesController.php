@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Paciente;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 
 class PacientesController extends Controller
@@ -33,7 +35,7 @@ class PacientesController extends Controller
 
         $validate = Validator::make($request->all(), [
             'nombre' => 'required|string|unique:pacientes,nombre',
-            'email' => 'required|string|email|max:255|unique:pacientes,email',
+            'email' => 'required|string|email|max:255|unique:pacientes,email|unique:users,email',
             'telefono' => 'required|string|max:255',
             'eps_id' => 'required|exists:eps,id',
         ]);
@@ -49,15 +51,46 @@ class PacientesController extends Controller
             ], 400);
         }
 
-        \Log::info('PacientesController@store - Validation passed, creating paciente');
+        \Log::info('PacientesController@store - Validation passed, creating user and paciente');
 
         try {
-            $paciente = Paciente::create($request->all());
+            // Create user account first
+            $defaultPassword = 'password123'; // Default password for patients
+            $user = User::create([
+                'name' => $request->nombre,
+                'email' => $request->email,
+                'password' => Hash::make($defaultPassword),
+                'role' => 'paciente',
+            ]);
+
+            \Log::info('PacientesController@store - User created successfully', [
+                'user_id' => $user->id,
+                'user_email' => $user->email
+            ]);
+
+            // Create paciente linked to the user
+            $pacienteData = $request->all();
+            $pacienteData['user_id'] = $user->id;
+
+            $paciente = Paciente::create($pacienteData);
+
             \Log::info('PacientesController@store - Paciente created successfully', [
                 'paciente_id' => $paciente->id,
+                'user_id' => $user->id,
                 'paciente_data' => $paciente->toArray()
             ]);
-            return response()->json($paciente, 201);
+
+            // Return paciente with user info
+            $paciente->load('eps');
+            return response()->json([
+                'paciente' => $paciente,
+                'user' => [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                    'default_password' => $defaultPassword
+                ]
+            ], 201);
+
         } catch (\Exception $e) {
             \Log::error('PacientesController@store - Exception during creation', [
                 'exception_message' => $e->getMessage(),
@@ -65,7 +98,7 @@ class PacientesController extends Controller
                 'request_data' => $request->all()
             ]);
             return response()->json([
-                'error' => 'Error creating paciente',
+                'error' => 'Error creating paciente and user',
                 'message' => $e->getMessage()
             ], 500);
         }

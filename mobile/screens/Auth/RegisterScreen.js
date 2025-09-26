@@ -1,22 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { Picker } from '@react-native-picker/picker';
 import * as Animatable from 'react-native-animatable';
 import { register } from '../../apis/authApi';
+import { getEps } from '../../apis/epsApi';
+import { getEspecialidades } from '../../apis/especialidadesApi';
 
 const RegisterScreen = ({ navigation }) => {
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password_confirmation, setPasswordConfirmation] = useState("");
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+
+  // Additional fields for specific roles
+  const [telefono, setTelefono] = useState("");
+  const [epsId, setEpsId] = useState("");
+  const [especialidadId, setEspecialidadId] = useState("");
+  const [epsList, setEpsList] = useState([]);
+  const [especialidadesList, setEspecialidadesList] = useState([]);
 
   // Estados para validación
   const [nombreError, setNombreError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [roleError, setRoleError] = useState("");
+
+  useEffect(() => {
+    loadEpsAndEspecialidades();
+  }, []);
+
+  const loadEpsAndEspecialidades = async () => {
+    try {
+      // Load EPS list
+      const epsResult = await getEps();
+      if (epsResult.success) {
+        setEpsList(epsResult.data);
+      }
+
+      // Load especialidades list
+      const especialidadesResult = await getEspecialidades();
+      if (especialidadesResult.success) {
+        setEspecialidadesList(especialidadesResult.data);
+      }
+    } catch (error) {
+      console.error('Error loading EPS and especialidades:', error);
+    }
+  };
 
   const validateNombre = (nombre) => {
     if (!nombre) {
@@ -71,27 +104,61 @@ const RegisterScreen = ({ navigation }) => {
     }
   };
 
+  const validateRole = (role) => {
+    if (!role) {
+      setRoleError("Debes seleccionar un tipo de cuenta");
+      return false;
+    } else {
+      setRoleError("");
+      return true;
+    }
+  };
+
   const handleRegister = async () => {
     const isNombreValid = validateNombre(nombre);
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
     const isConfirmPasswordValid = validateConfirmPassword(password_confirmation);
+    const isRoleValid = validateRole(role);
 
-    if (!isNombreValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+    if (!isNombreValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid || !isRoleValid) {
       return;
     }
 
     setLoading(true);
-    const result = await register(nombre, email, password, password_confirmation, role);
-    setLoading(false);
 
-    if (result.success) {
-      setSuccessMessage('¡Registro Exitoso! Tu cuenta ha sido creada correctamente. Redirigiendo al login...');
-      setTimeout(() => {
-        navigation.replace("Login");
-      }, 2000);
-    } else {
-      Alert.alert('Error', result.error);
+    // Prepare additional data based on role
+    let additionalData = {};
+    if (role === 'paciente') {
+      additionalData = {
+        telefono: telefono,
+        eps_id: epsId
+      };
+    } else if (role === 'doctor') {
+      additionalData = {
+        telefono: telefono,
+        especialidad_id: especialidadId,
+        eps_id: epsId
+      };
+    }
+
+    try {
+      const result = await register(nombre, email, password, password_confirmation, role, additionalData);
+      setLoading(false);
+
+      if (result.success) {
+        setSuccessMessage('¡Registro Exitoso! Tu cuenta ha sido creada correctamente. Redirigiendo al login...');
+        setTimeout(() => {
+          navigation.replace("Login");
+        }, 2000);
+      } else {
+        console.log('Registration failed:', result.error);
+        Alert.alert('Error en Registro', result.error || 'Ocurrió un error durante el registro. Por favor, inténtalo de nuevo.');
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error('Unexpected error during registration:', error);
+      Alert.alert('Error', 'Ocurrió un error inesperado. Por favor, verifica tu conexión e inténtalo de nuevo.');
     }
   };
 
@@ -179,16 +246,110 @@ const RegisterScreen = ({ navigation }) => {
 
             <Animatable.View animation="zoomIn" duration={600} delay={1200} style={styles.roleContainer}>
               <Text style={styles.inputLabel}>Tipo de cuenta:</Text>
-              <View style={styles.adminContainer}>
+              <View style={styles.roleButtonsContainer}>
                 <TouchableOpacity
-                  style={styles.adminButton}
+                  style={[styles.roleButton, role === 'paciente' && styles.roleButtonSelected]}
+                  onPress={() => setRole('paciente')}
                 >
-                  <Text style={styles.adminButtonText}>⚙️ Administrador</Text>
+                  <Text style={[styles.roleButtonText, role === 'paciente' && styles.roleButtonTextSelected]}>👤 Paciente</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.roleButton, role === 'doctor' && styles.roleButtonSelected]}
+                  onPress={() => setRole('doctor')}
+                >
+                  <Text style={[styles.roleButtonText, role === 'doctor' && styles.roleButtonTextSelected]}>👨‍⚕️ Doctor</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.roleButton, role === 'admin' && styles.roleButtonSelected]}
+                  onPress={() => setRole('admin')}
+                >
+                  <Text style={[styles.roleButtonText, role === 'admin' && styles.roleButtonTextSelected]}>⚙️ Administrador</Text>
                 </TouchableOpacity>
               </View>
+              {roleError ? <Animatable.Text animation="shake" style={styles.errorText}>{roleError}</Animatable.Text> : null}
             </Animatable.View>
 
-            <Animatable.View animation="pulse" duration={600} delay={1400}>
+            {/* Additional fields for Paciente role */}
+            {role === 'paciente' && (
+              <>
+                <Animatable.View animation="slideInUp" duration={600} delay={1300} style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Teléfono</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Tu número de teléfono"
+                    value={telefono}
+                    onChangeText={setTelefono}
+                    keyboardType="phone-pad"
+                  />
+                </Animatable.View>
+
+                <Animatable.View animation="slideInUp" duration={600} delay={1350} style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>EPS</Text>
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={epsId}
+                      onValueChange={(itemValue) => setEpsId(itemValue)}
+                      style={styles.picker}
+                    >
+                      <Picker.Item label="Selecciona una EPS" value="" />
+                      {epsList.map((eps) => (
+                        <Picker.Item key={eps.id} label={eps.nombre} value={eps.id.toString()} />
+                      ))}
+                    </Picker>
+                  </View>
+                </Animatable.View>
+              </>
+            )}
+
+            {/* Additional fields for Doctor role */}
+            {role === 'doctor' && (
+              <>
+                <Animatable.View animation="slideInUp" duration={600} delay={1300} style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Teléfono</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Tu número de teléfono"
+                    value={telefono}
+                    onChangeText={setTelefono}
+                    keyboardType="phone-pad"
+                  />
+                </Animatable.View>
+
+                <Animatable.View animation="slideInUp" duration={600} delay={1350} style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Especialidad</Text>
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={especialidadId}
+                      onValueChange={(itemValue) => setEspecialidadId(itemValue)}
+                      style={styles.picker}
+                    >
+                      <Picker.Item label="Selecciona una especialidad" value="" />
+                      {especialidadesList.map((especialidad) => (
+                        <Picker.Item key={especialidad.id} label={especialidad.nombre} value={especialidad.id.toString()} />
+                      ))}
+                    </Picker>
+                  </View>
+                </Animatable.View>
+
+                <Animatable.View animation="slideInUp" duration={600} delay={1400} style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>EPS</Text>
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={epsId}
+                      onValueChange={(itemValue) => setEpsId(itemValue)}
+                      style={styles.picker}
+                    >
+                      <Picker.Item label="Selecciona una EPS" value="" />
+                      {epsList.map((eps) => (
+                        <Picker.Item key={eps.id} label={eps.nombre} value={eps.id.toString()} />
+                      ))}
+                    </Picker>
+                  </View>
+                </Animatable.View>
+              </>
+            )}
+
+            <Animatable.View animation="pulse" duration={600} delay={1500}>
               <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
                 onPress={handleRegister}
@@ -293,22 +454,31 @@ const styles = StyleSheet.create({
   roleContainer: {
     marginBottom: 24,
   },
-  adminContainer: {
+  roleButtonsContainer: {
     marginTop: 12,
-    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
   },
-  adminButton: {
-    padding: 20,
+  roleButton: {
+    flex: 1,
+    padding: 16,
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: '#ddd',
     borderRadius: 12,
-    backgroundColor: '#f0f8ff',
-    minWidth: 200,
+    backgroundColor: '#f8f9fa',
     alignItems: 'center',
   },
-  adminButtonText: {
-    fontSize: 16,
+  roleButtonSelected: {
+    borderColor: '#007AFF',
+    backgroundColor: '#f0f8ff',
+  },
+  roleButtonText: {
+    fontSize: 14,
     fontWeight: 'bold',
+    color: '#666',
+  },
+  roleButtonTextSelected: {
     color: '#007AFF',
   },
   button: {
@@ -349,6 +519,17 @@ const styles = StyleSheet.create({
     color: '#28a745',
     textAlign: 'center',
     fontWeight: 'bold',
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 12,
+    backgroundColor: '#fafafa',
+    marginTop: 8,
+  },
+  picker: {
+    height: 50,
+    color: '#333',
   },
 });
 

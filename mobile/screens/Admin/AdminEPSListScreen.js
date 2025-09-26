@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { getEps, deleteEps } from '../../apis/epsApi';
 
 const AdminEPSListScreen = ({ navigation }) => {
@@ -9,6 +10,13 @@ const AdminEPSListScreen = ({ navigation }) => {
   useEffect(() => {
     fetchEPS();
   }, []);
+
+  // Refresh data when screen comes into focus (e.g., returning from create screen)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchEPS();
+    }, [])
+  );
 
   const fetchEPS = async () => {
     setLoading(true);

@@ -12,6 +12,8 @@ import HomeScreen from "../screens/Auth/HomeScreen";
 
 // 🔹 Dashboard Screens
 import AdminDashboard from "../screens/Dashboard/AdminDashboard";
+import PacienteDashboard from "../screens/Dashboard/PacienteDashboard";
+import DoctorDashboard from "../screens/Dashboard/DoctorDashboard";
 
 // 🔹 Admin - Appointments Screens
 import AdminCitasListScreen from "../screens/Admin/AdminCitasListScreen";
@@ -41,6 +43,19 @@ import AdminPacienteUpdateScreen from "../screens/Admin/AdminPacienteUpdateScree
 
 // 🔹 Profile Screen
 import ProfileScreen from "../screens/Profile/ProfileScreen";
+
+// 🔹 Appointments Screens
+import ScheduleAppointmentScreen from "../screens/Appointments/ScheduleAppointmentScreen";
+import DoctorAppointmentsScreen from "../screens/Appointments/DoctorAppointmentsScreen";
+import DoctorScheduleAppointmentScreen from "../screens/Appointments/DoctorScheduleAppointmentScreen";
+import CitasListScreen from "../screens/Citas/CitasListScreen";
+import CitaDetalleScreen from "../screens/Citas/CitaDetalleScreen";
+import CitaCreateScreen from "../screens/Citas/CitaCreateScreen";
+import CitaUpdateScreen from "../screens/Citas/CitaUpdateScreen";
+import CitaDeleteScreen from "../screens/Citas/CitaDeleteScreen";
+
+// 🔹 Doctor Screens
+import DoctorScheduleManagementScreen from "../screens/Doctor/DoctorScheduleManagementScreen";
 
 // 🔹 Admin Screens
 import AdminAdminsListScreen from "../screens/Admin/AdminAdminsListScreen";
@@ -76,8 +91,21 @@ const AppNavigator = () => {
         {/* 🔹 PROFILE */}
         <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Mi Perfil" }} />
 
+        {/* 🔹 APPOINTMENTS */}
+        <Stack.Screen name="ScheduleAppointment" component={ScheduleAppointmentScreen} options={{ title: "Agendar Cita" }} />
+        <Stack.Screen name="DoctorAppointments" component={DoctorAppointmentsScreen} options={{ title: "Mis Citas" }} />
+        <Stack.Screen name="DoctorScheduleAppointment" component={DoctorScheduleAppointmentScreen} options={{ title: "Agendar Cita para Paciente" }} />
+        <Stack.Screen name="DoctorScheduleManagement" component={DoctorScheduleManagementScreen} options={{ title: "Gestionar Horario" }} />
+        <Stack.Screen name="CitasList" component={CitasListScreen} options={{ title: "Mis Citas" }} />
+        <Stack.Screen name="CitaDetalle" component={CitaDetalleScreen} options={{ title: "Detalle de Cita" }} />
+        <Stack.Screen name="CitaCreate" component={CitaCreateScreen} options={{ title: "Crear Cita" }} />
+        <Stack.Screen name="CitaUpdate" component={CitaUpdateScreen} options={{ title: "Actualizar Cita" }} />
+        <Stack.Screen name="CitaDelete" component={CitaDeleteScreen} options={{ title: "Eliminar Cita" }} />
+
         {/* 🔹 DASHBOARDS */}
         <Stack.Screen name="AdminDashboard" component={AdminDashboard} options={{ title: "Admin" }} />
+        <Stack.Screen name="PacienteDashboard" component={PacienteDashboard} options={{ title: "Paciente" }} />
+        <Stack.Screen name="DoctorDashboard" component={DoctorDashboard} options={{ title: "Doctor" }} />
 
         {/* 🔹 ADMIN - APPOINTMENTS */}
         <Stack.Screen name="AdminCitasList" component={AdminCitasListScreen} options={{ title: "Gestionar Citas" }} />

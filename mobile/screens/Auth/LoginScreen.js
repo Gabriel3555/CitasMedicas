@@ -24,7 +24,7 @@ const LoginScreen = ({ navigation }) => {
         setRememberMe(true);
       }
     } catch (error) {
-      console.log('Error loading remembered credentials:', error);
+      // Error loading remembered credentials, continue without them
     }
   };
 
@@ -77,8 +77,16 @@ const LoginScreen = ({ navigation }) => {
         await AsyncStorage.removeItem('rememberedEmail');
       }
 
-      // Todos los usuarios ahora son admin
-      navigation.replace("AdminDashboard");
+      // Redirigir según el rol del usuario
+      const userRole = result.data.user.role;
+      if (userRole === 'paciente') {
+        navigation.replace("PacienteDashboard");
+      } else if (userRole === 'doctor') {
+        navigation.replace("DoctorDashboard");
+      } else {
+        // Default to admin dashboard for admin role or any other role
+        navigation.replace("AdminDashboard");
+      }
     } else {
       Alert.alert('Error', result.error);
     }

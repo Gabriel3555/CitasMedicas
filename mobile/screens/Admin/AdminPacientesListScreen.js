@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { getPacientes, deletePaciente } from '../../apis/pacientesApi';
 
 const AdminPacientesListScreen = ({ navigation }) => {
@@ -9,6 +10,13 @@ const AdminPacientesListScreen = ({ navigation }) => {
   useEffect(() => {
     fetchPacientes();
   }, []);
+
+  // Refresh data when screen comes into focus (e.g., returning from create screen)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchPacientes();
+    }, [])
+  );
 
   const fetchPacientes = async () => {
     setLoading(true);

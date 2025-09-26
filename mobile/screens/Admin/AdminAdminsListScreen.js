@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { getUsers, deleteUser } from '../../apis/usersApi';
 
 const AdminAdminsListScreen = ({ navigation }) => {
@@ -9,6 +10,13 @@ const AdminAdminsListScreen = ({ navigation }) => {
   useEffect(() => {
     fetchAdmins();
   }, []);
+
+  // Refresh data when screen comes into focus (e.g., returning from create screen)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchAdmins();
+    }, [])
+  );
 
   const fetchAdmins = async () => {
     setLoading(true);

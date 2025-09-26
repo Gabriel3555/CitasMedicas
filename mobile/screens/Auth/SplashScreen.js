@@ -16,8 +16,18 @@ const SplashScreen = ({ navigation }) => {
         // Verificar si el token es válido
         const result = await me();
         if (result.success) {
-          // Todos los usuarios ahora son admin
-          navigation.replace('AdminDashboard');
+          // Redirigir según el rol del usuario
+          const userRole = result.data.role;
+          if (userRole === 'admin') {
+            navigation.replace('AdminDashboard');
+          } else if (userRole === 'doctor') {
+            navigation.replace('DoctorDashboard');
+          } else if (userRole === 'paciente') {
+            navigation.replace('PacienteDashboard');
+          } else {
+            // Rol desconocido, ir al login
+            navigation.replace('Login');
+          }
         } else {
           // Token inválido, ir al login
           navigation.replace('Login');
@@ -27,7 +37,6 @@ const SplashScreen = ({ navigation }) => {
         navigation.replace('Login');
       }
     } catch (error) {
-      console.log('Error checking auth status:', error);
       navigation.replace('Login');
     }
   };

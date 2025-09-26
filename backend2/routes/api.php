@@ -13,12 +13,18 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Public routes for registration form
+Route::get('/eps', [EPSController::class, 'index']);
+Route::get('/especialidades', [EspecialidadesController::class, 'index']);
+
 Route::middleware('jwt.auth')->group(function () {
     // Auth routes
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::put('/profile/password', [AuthController::class, 'changePassword']);
+    Route::put('/admin/users/{user_id}/password', [AuthController::class, 'adminChangeUserPassword']);
     Route::post('/profile/photo', [AuthController::class, 'uploadPhoto']);
 
     // User management routes (admin only)
@@ -39,6 +45,7 @@ Route::middleware('jwt.auth')->group(function () {
     // Doctores routes
     Route::get('/doctores', [DoctoresController::class, 'index']);
     Route::post('/doctores', [DoctoresController::class, 'store']);
+    Route::put('/doctores/schedule', [DoctoresController::class, 'updateMySchedule']);
     Route::put('/doctores/{id}', [DoctoresController::class, 'update']);
     Route::delete('/doctores/{id}', [DoctoresController::class, 'destroy']);
     Route::get('/doctores/{id}', [DoctoresController::class, 'show']);
@@ -52,14 +59,16 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/citas/{id}', [CitasController::class, 'show']);
     Route::get('/citas/{id}/detalle', [CitasController::class, 'citaCompleta']);
 
-    // EPS routes
-    Route::get('/eps', [EPSController::class, 'index']);
+    // Routes for patients and doctors to view their own appointments
+    Route::get('/my-citas', [CitasController::class, 'getMyCitas']);
+    Route::get('/my-citas-doctor', [CitasController::class, 'getMyCitasDoctor']);
+
+    // EPS routes (protected)
     Route::put('/eps/{id}', [EPSController::class, 'update']);
     Route::delete('/eps/{id}', [EPSController::class, 'destroy']);
     Route::get('/eps/{id}', [EPSController::class, 'show']);
 
-    // Especialidades routes
-    Route::get('/especialidades', [EspecialidadesController::class, 'index']);
+    // Especialidades routes (protected)
     Route::post('/especialidades', [EspecialidadesController::class, 'store']);
     Route::put('/especialidades/{id}', [EspecialidadesController::class, 'update']);
     Route::delete('/especialidades/{id}', [EspecialidadesController::class, 'destroy']);

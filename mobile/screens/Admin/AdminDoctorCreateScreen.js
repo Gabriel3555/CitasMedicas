@@ -30,26 +30,16 @@ const AdminDoctorCreateScreen = ({ navigation }) => {
   }, []);
 
   const fetchEspecialidades = async () => {
-    console.log('AdminDoctorCreateScreen - fetchEspecialidades called');
     const result = await getEspecialidades();
-    console.log('AdminDoctorCreateScreen - getEspecialidades result:', result);
     if (result.success) {
-      console.log('AdminDoctorCreateScreen - Setting especialidades list:', result.data);
       setEspecialidadesList(result.data);
-    } else {
-      console.error('AdminDoctorCreateScreen - Error fetching especialidades:', result.error);
     }
   };
 
   const fetchEPS = async () => {
-    console.log('AdminDoctorCreateScreen - fetchEPS called');
     const result = await getEps();
-    console.log('AdminDoctorCreateScreen - getEps result:', result);
     if (result.success) {
-      console.log('AdminDoctorCreateScreen - Setting EPS list:', result.data);
       setEpsList(result.data);
-    } else {
-      console.error('AdminDoctorCreateScreen - Error fetching EPS:', result.error);
     }
   };
 
@@ -114,34 +104,28 @@ const AdminDoctorCreateScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
-    console.log('AdminDoctorCreateScreen - handleSubmit called with formData:', formData);
-    
     if (!formData.nombre || !formData.email || !formData.telefono ||
         !formData.especialidad_id || !formData.eps_id) {
-      console.log('AdminDoctorCreateScreen - Validation failed, missing required fields:', {
-        nombre: !!formData.nombre,
-        email: !!formData.email,
-        telefono: !!formData.telefono,
-        especialidad_id: !!formData.especialidad_id,
-        eps_id: !!formData.eps_id
-      });
       Alert.alert('Error', 'Los campos marcados con * son obligatorios');
       return;
     }
 
-    console.log('AdminDoctorCreateScreen - Validation passed, creating doctor with data:', formData);
     setLoading(true);
     const result = await createDoctor(formData);
-    console.log('AdminDoctorCreateScreen - createDoctor result:', result);
     setLoading(false);
 
     if (result.success) {
-      console.log('AdminDoctorCreateScreen - Doctor created successfully');
-      Alert.alert('Éxito', 'Doctor creado correctamente', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      const doctor = result.data.doctor;
+      const user = result.data.user;
+
+      Alert.alert(
+        'Éxito',
+        `Doctor creado correctamente.\n\nCuenta de usuario creada:\nEmail: ${user.email}\nContraseña: ${user.default_password}`,
+        [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]
+      );
     } else {
-      console.error('AdminDoctorCreateScreen - Error creating doctor:', result.error);
       Alert.alert('Error', result.error || 'Error desconocido al crear doctor');
     }
   };
@@ -190,22 +174,18 @@ const AdminDoctorCreateScreen = ({ navigation }) => {
             <Picker
               selectedValue={formData.especialidad_id}
               onValueChange={(value) => {
-                console.log('AdminDoctorCreateScreen - Especialidad selected:', value);
                 handleInputChange('especialidad_id', value);
               }}
               style={styles.picker}
             >
               <Picker.Item label="🔍 Seleccionar especialidad..." value="" />
-              {(() => {
-                console.log('AdminDoctorCreateScreen - Rendering especialidades:', especialidadesList);
-                return especialidadesList.map((especialidad) => (
-                  <Picker.Item
-                    key={especialidad.id}
-                    label={especialidad.nombre}
-                    value={especialidad.id.toString()}
-                  />
-                ));
-              })()}
+              {especialidadesList.map((especialidad) => (
+                <Picker.Item
+                  key={especialidad.id}
+                  label={especialidad.nombre}
+                  value={especialidad.id.toString()}
+                />
+              ))}
             </Picker>
           </View>
         </View>
@@ -216,26 +196,18 @@ const AdminDoctorCreateScreen = ({ navigation }) => {
             <Picker
               selectedValue={formData.eps_id}
               onValueChange={(value) => {
-                console.log('AdminDoctorCreateScreen - EPS selected:', value);
                 handleInputChange('eps_id', value);
               }}
               style={styles.picker}
             >
               <Picker.Item label="🔍 Seleccionar EPS..." value="" />
-              {(() => {
-                console.log('AdminDoctorCreateScreen - Rendering EPS list:', epsList);
-                console.log('AdminDoctorCreateScreen - EPS list length:', epsList.length);
-                return epsList.map((eps) => {
-                  console.log('AdminDoctorCreateScreen - Rendering EPS item:', eps);
-                  return (
-                    <Picker.Item
-                      key={eps.id}
-                      label={eps.nombre}
-                      value={eps.id.toString()}
-                    />
-                  );
-                });
-              })()}
+              {epsList.map((eps) => (
+                <Picker.Item
+                  key={eps.id}
+                  label={eps.nombre}
+                  value={eps.id.toString()}
+                />
+              ))}
             </Picker>
           </View>
         </View>

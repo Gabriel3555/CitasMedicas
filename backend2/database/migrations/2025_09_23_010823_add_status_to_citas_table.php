@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('citas', function (Blueprint $table) {
-            $table->enum('status', ['pending', 'accepted', 'rejected', 'completed'])->default('pending');
+            $table->enum('status', ['pendiente_por_aprobador', 'no_aprobado', 'completada'])->default('pendiente_por_aprobador');
         });
     }
 

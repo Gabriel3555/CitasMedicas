@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Image, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Image, Platform, TextInput, Modal } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { me, uploadProfilePhoto } from '../../apis/authApi';
+import { me, uploadProfilePhoto, changePassword, updateProfile, updatePatientProfile, updateDoctorProfile } from '../../apis/authApi';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -13,6 +13,16 @@ const ProfileScreen = ({ navigation }) => {
   const [photoLoading, setPhotoLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [updatingProfile, setUpdatingProfile] = useState(false);
 
   useEffect(() => {
     loadUserProfile();
@@ -20,44 +30,31 @@ const ProfileScreen = ({ navigation }) => {
 
   const loadUserProfile = async () => {
     try {
-      console.log('Loading user profile...');
       const result = await me();
-      console.log('API result:', result);
 
       if (result.success) {
         setUser(result.data);
-        console.log('User data:', result.data);
 
         if (result.data.photo_url) {
-          console.log('Photo URL from API:', result.data.photo_url);
           // Verificar si la URL es válida
           if (typeof result.data.photo_url === 'string' && result.data.photo_url.trim() !== '') {
             setPhotoLoading(true);
             setPhoto(result.data.photo_url);
             setPhotoLoading(false);
-          } else {
-            console.log('Photo URL is empty or invalid');
           }
         } else if (result.data.photo) {
-          console.log('Using legacy photo field:', result.data.photo);
           // Verificar si la URL es válida
           if (typeof result.data.photo === 'string' && result.data.photo.trim() !== '') {
             setPhotoLoading(true);
             setPhoto(result.data.photo);
             setPhotoLoading(false);
-          } else {
-            console.log('Photo URL is empty or invalid');
           }
-        } else {
-          console.log('No photo found in user data');
         }
       } else {
-        console.error('API error:', result);
         Alert.alert('Error', 'No se pudo cargar el perfil');
         navigation.goBack();
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
       Alert.alert('Error', 'Error al cargar el perfil');
       navigation.goBack();
     } finally {
@@ -66,48 +63,26 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const selectImageSource = () => {
-    console.log('selectImageSource called');
-    console.log('Available options:', ['Cámara', 'Galería']);
     Alert.alert(
       'Seleccionar imagen',
       '¿De dónde quieres seleccionar la imagen?',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Cámara', onPress: () => {
-          console.log('Camera option selected');
-          openCamera();
-        }},
-        { text: 'Galería', onPress: () => {
-          console.log('Gallery option selected');
-          openGallery();
-        }},
+        { text: 'Cámara', onPress: () => openCamera() },
+        { text: 'Galería', onPress: () => openGallery() },
       ],
     );
   };
 
   const openCamera = async () => {
     try {
-      console.log('Opening camera...');
-      console.log('Requesting camera permissions...');
-
       // Solicitar permisos de cámara
       const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
-
-      console.log('Camera permission result:', cameraPermission);
 
       if (cameraPermission.status !== 'granted') {
         Alert.alert('Error', 'Se necesita permiso para acceder a la cámara');
         return;
       }
-
-      console.log('Camera permission granted');
-
-      console.log('Launching camera with options:', {
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
 
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -116,43 +91,23 @@ const ProfileScreen = ({ navigation }) => {
         quality: 0.8,
       });
 
-      console.log('Camera result:', result);
-
       if (!result.canceled) {
-        console.log('Image selected:', result.assets[0].uri);
         setSelectedImage(result.assets[0].uri);
-      } else {
-        console.log('User cancelled camera');
       }
     } catch (error) {
-      console.error('Error opening camera:', error);
       Alert.alert('Error', 'No se pudo abrir la cámara');
     }
   };
 
   const openGallery = async () => {
     try {
-      console.log('Opening gallery...');
-      console.log('Requesting gallery permissions...');
-
       // Solicitar permisos de galería
       const galleryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      console.log('Gallery permission result:', galleryPermission);
 
       if (galleryPermission.status !== 'granted') {
         Alert.alert('Error', 'Se necesita permiso para acceder a la galería');
         return;
       }
-
-      console.log('Gallery permission granted');
-
-      console.log('Launching gallery with options:', {
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -161,16 +116,10 @@ const ProfileScreen = ({ navigation }) => {
         quality: 0.8,
       });
 
-      console.log('Gallery result:', result);
-
       if (!result.canceled) {
-        console.log('Image selected from gallery:', result.assets[0].uri);
         setSelectedImage(result.assets[0].uri);
-      } else {
-        console.log('User cancelled gallery');
       }
     } catch (error) {
-      console.error('Error opening gallery:', error);
       Alert.alert('Error', 'No se pudo abrir la galería');
     }
   };
@@ -206,6 +155,97 @@ const ProfileScreen = ({ navigation }) => {
     }
 
     selectImageSource();
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert('Error', 'Todos los campos son obligatorios');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'Las contraseñas nuevas no coinciden');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      Alert.alert('Error', 'La nueva contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    setChangingPassword(true);
+    const result = await changePassword(currentPassword, newPassword, confirmPassword);
+    setChangingPassword(false);
+
+    if (result.success) {
+      Alert.alert('Éxito', 'Contraseña cambiada exitosamente');
+      setShowPasswordModal(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      Alert.alert('Error', result.error);
+    }
+  };
+
+  const handleEditProfile = async () => {
+    if (!editName.trim() || !editEmail.trim()) {
+      Alert.alert('Error', 'Nombre y email son obligatorios');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(editEmail)) {
+      Alert.alert('Error', 'Por favor ingresa un email válido');
+      return;
+    }
+
+    // For patients and doctors, phone is also required
+    if ((user.role === 'paciente' || user.role === 'doctor') && !editPhone.trim()) {
+      Alert.alert('Error', `Teléfono es obligatorio para ${user.role === 'paciente' ? 'pacientes' : 'doctores'}`);
+      return;
+    }
+
+    setUpdatingProfile(true);
+
+    let result;
+    if (user.role === 'paciente') {
+      result = await updatePatientProfile(editName.trim(), editEmail.trim(), editPhone.trim());
+    } else if (user.role === 'doctor') {
+      result = await updateDoctorProfile(editName.trim(), editEmail.trim(), editPhone.trim());
+    } else {
+      result = await updateProfile(editName.trim(), editEmail.trim());
+    }
+
+    setUpdatingProfile(false);
+
+    if (result.success) {
+      Alert.alert('Éxito', 'Perfil actualizado exitosamente');
+      // Reload user data to get updated information
+      const userResult = await me();
+      if (userResult.success) {
+        setUser(userResult.data);
+      }
+      setShowEditProfileModal(false);
+      setEditName('');
+      setEditEmail('');
+      setEditPhone('');
+    } else {
+      Alert.alert('Error', result.error);
+    }
+  };
+
+  const openEditProfileModal = () => {
+    setEditName(user.name || '');
+    setEditEmail(user.email || '');
+    if ((user.role === 'paciente' && user.paciente_profile) || (user.role === 'doctor' && user.doctor_profile)) {
+      setEditPhone(
+        user.role === 'paciente' ? (user.paciente_profile?.telefono || '') :
+        user.role === 'doctor' ? (user.doctor_profile?.telefono || '') : ''
+      );
+    }
+    setShowEditProfileModal(true);
   };
 
   if (loading) {
@@ -245,7 +285,6 @@ const ProfileScreen = ({ navigation }) => {
                 source={{ uri: selectedImage }}
                 style={styles.profilePhoto}
                 onError={(error) => {
-                  console.error('Error loading selected image:', error);
                   setSelectedImage(null);
                   Alert.alert('Error', 'No se pudo cargar la imagen seleccionada');
                 }}
@@ -255,13 +294,9 @@ const ProfileScreen = ({ navigation }) => {
                 source={{ uri: photo }}
                 style={styles.profilePhoto}
                 onError={(error) => {
-                  console.error('Error loading profile photo:', error);
-                  console.error('Photo URL that failed:', photo);
                   setPhoto(null);
                   Alert.alert('Error', 'No se pudo cargar la foto de perfil');
                 }}
-                onLoadStart={() => console.log('Starting to load image:', photo)}
-                onLoadEnd={() => console.log('Finished loading image:', photo)}
               />
             ) : (
               <View style={styles.photoPlaceholder}>
@@ -293,26 +328,181 @@ const ProfileScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.infoContainer}>
-          <View style={styles.infoField}>
-            <Text style={styles.fieldLabel}>Nombre:</Text>
-            <Text style={styles.fieldValue}>{user.name || 'No especificado'}</Text>
-          </View>
+           <View style={styles.infoField}>
+             <Text style={styles.fieldLabel}>Nombre:</Text>
+             <Text style={styles.fieldValue}>{user.name || 'No especificado'}</Text>
+           </View>
 
-          <View style={styles.infoField}>
-            <Text style={styles.fieldLabel}>Email:</Text>
-            <Text style={styles.fieldValue}>{user.email || 'No especificado'}</Text>
-          </View>
+           <View style={styles.infoField}>
+             <Text style={styles.fieldLabel}>Email:</Text>
+             <Text style={styles.fieldValue}>{user.email || 'No especificado'}</Text>
+           </View>
 
-          <View style={styles.infoField}>
-            <Text style={styles.fieldLabel}>Rol:</Text>
-            <Text style={styles.fieldValue}>⚙️ Administrador</Text>
-          </View>
-        </View>
+           {(user.role === 'paciente' && user.paciente_profile) || (user.role === 'doctor' && user.doctor_profile) ? (
+             <View style={styles.infoField}>
+               <Text style={styles.fieldLabel}>Teléfono:</Text>
+               <Text style={styles.fieldValue}>
+                 {user.role === 'paciente' ? (user.paciente_profile?.telefono || 'No especificado') :
+                  user.role === 'doctor' ? (user.doctor_profile?.telefono || 'No especificado') :
+                  'No especificado'}
+               </Text>
+             </View>
+           ) : null}
 
-      </Animatable.View>
-    </ScrollView>
-  );
-};
+           <View style={styles.infoField}>
+             <Text style={styles.fieldLabel}>Rol:</Text>
+             <Text style={styles.fieldValue}>
+               {user.role === 'admin' ? '⚙️ Administrador' :
+                user.role === 'doctor' ? '👨‍⚕️ Doctor' :
+                user.role === 'paciente' ? '👤 Paciente' : 'Usuario'}
+             </Text>
+           </View>
+         </View>
+
+         <TouchableOpacity
+           style={styles.editProfileButton}
+           onPress={openEditProfileModal}
+         >
+           <Text style={styles.editProfileButtonText}>✏️ Editar Perfil</Text>
+         </TouchableOpacity>
+
+         <TouchableOpacity
+           style={styles.changePasswordButton}
+           onPress={() => setShowPasswordModal(true)}
+         >
+           <Text style={styles.changePasswordButtonText}>🔒 Cambiar Contraseña</Text>
+         </TouchableOpacity>
+
+       </Animatable.View>
+ 
+       {/* Change Password Modal */}
+       <Modal
+         visible={showPasswordModal}
+         animationType="slide"
+         transparent={true}
+         onRequestClose={() => setShowPasswordModal(false)}
+       >
+         <View style={styles.modalOverlay}>
+           <View style={styles.modalContent}>
+             <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
+ 
+             <TextInput
+               style={styles.input}
+               placeholder="Contraseña actual"
+               secureTextEntry
+               value={currentPassword}
+               onChangeText={setCurrentPassword}
+             />
+ 
+             <TextInput
+               style={styles.input}
+               placeholder="Nueva contraseña"
+               secureTextEntry
+               value={newPassword}
+               onChangeText={setNewPassword}
+             />
+ 
+             <TextInput
+               style={styles.input}
+               placeholder="Confirmar nueva contraseña"
+               secureTextEntry
+               value={confirmPassword}
+               onChangeText={setConfirmPassword}
+             />
+ 
+             <View style={styles.modalButtons}>
+               <TouchableOpacity
+                 style={[styles.modalButton, styles.cancelButton]}
+                 onPress={() => {
+                   setShowPasswordModal(false);
+                   setCurrentPassword('');
+                   setNewPassword('');
+                   setConfirmPassword('');
+                 }}
+               >
+                 <Text style={styles.cancelButtonText}>Cancelar</Text>
+               </TouchableOpacity>
+ 
+               <TouchableOpacity
+                 style={[styles.modalButton, styles.confirmButton]}
+                 onPress={handleChangePassword}
+                 disabled={changingPassword}
+               >
+                 <Text style={styles.confirmButtonText}>
+                   {changingPassword ? 'Cambiando...' : 'Cambiar'}
+                 </Text>
+               </TouchableOpacity>
+             </View>
+           </View>
+         </View>
+       </Modal>
+
+       {/* Edit Profile Modal */}
+       <Modal
+         visible={showEditProfileModal}
+         animationType="slide"
+         transparent={true}
+         onRequestClose={() => setShowEditProfileModal(false)}
+       >
+         <View style={styles.modalOverlay}>
+           <View style={styles.modalContent}>
+             <Text style={styles.modalTitle}>Editar Perfil</Text>
+
+             <TextInput
+               style={styles.input}
+               placeholder="Nombre completo"
+               value={editName}
+               onChangeText={setEditName}
+             />
+
+             <TextInput
+               style={styles.input}
+               placeholder="Email"
+               keyboardType="email-address"
+               autoCapitalize="none"
+               value={editEmail}
+               onChangeText={setEditEmail}
+             />
+
+             {(user.role === 'paciente' || user.role === 'doctor') && (
+               <TextInput
+                 style={styles.input}
+                 placeholder="Teléfono"
+                 keyboardType="phone-pad"
+                 value={editPhone}
+                 onChangeText={setEditPhone}
+               />
+             )}
+
+             <View style={styles.modalButtons}>
+               <TouchableOpacity
+                 style={[styles.modalButton, styles.cancelButton]}
+                 onPress={() => {
+                   setShowEditProfileModal(false);
+                   setEditName('');
+                   setEditEmail('');
+                   setEditPhone('');
+                 }}
+               >
+                 <Text style={styles.cancelButtonText}>Cancelar</Text>
+               </TouchableOpacity>
+
+               <TouchableOpacity
+                 style={[styles.modalButton, styles.confirmButton]}
+                 onPress={handleEditProfile}
+                 disabled={updatingProfile}
+               >
+                 <Text style={styles.confirmButtonText}>
+                   {updatingProfile ? 'Actualizando...' : 'Actualizar'}
+                 </Text>
+               </TouchableOpacity>
+             </View>
+           </View>
+         </View>
+       </Modal>
+     </ScrollView>
+   );
+ };
 
 const styles = StyleSheet.create({
   container: {
@@ -455,6 +645,81 @@ const styles = StyleSheet.create({
     color: '#6c757d',
     flex: 2,
     textAlign: 'right',
+  },
+  editProfileButton: {
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  editProfileButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  changePasswordButton: {
+    backgroundColor: '#28a745',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  changePasswordButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#333',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    fontSize: 16,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: '#6c757d',
+  },
+  cancelButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  confirmButton: {
+    backgroundColor: '#28a745',
   },
   updateButton: {
     backgroundColor: '#007AFF',

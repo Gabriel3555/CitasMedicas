@@ -73,38 +73,32 @@ export const getMyCitasDoctor = async () => {
   }
 };
 
-export const getAvailableSlots = async (doctorId, fecha) => {
-  console.log('citasApi@getAvailableSlots - Request initiated', {
-    doctorId,
-    fecha,
-    timestamp: new Date().toISOString()
-  });
-
+export const updateCitaStatus = async (id, status) => {
   try {
-    console.log('citasApi@getAvailableSlots - Making API call', {
-      url: '/citas/available-slots',
-      params: { doctor_id: doctorId, fecha: fecha }
-    });
+    const response = await api.put(`/citas/${id}`, { status });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { success: false, error: error.response?.data?.error || 'Error al actualizar estado de cita' };
+  }
+};
 
+export const getPacientes = async () => {
+  try {
+    const response = await api.get('/pacientes');
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { success: false, error: error.response?.data?.error || 'Error al obtener pacientes' };
+  }
+};
+
+export const getAvailableSlots = async (doctorId, fecha) => {
+  try {
     const response = await api.get('/citas/available-slots', {
       params: { doctor_id: doctorId, fecha: fecha }
     });
 
-    console.log('citasApi@getAvailableSlots - API call successful', {
-      status: response.status,
-      data: response.data,
-      slots_count: response.data.slots ? response.data.slots.length : 0
-    });
-
     return { success: true, data: response.data };
   } catch (error) {
-    console.error('citasApi@getAvailableSlots - API call failed', {
-      error: error,
-      response: error.response,
-      status: error.response?.status,
-      data: error.response?.data
-    });
-
     return { success: false, error: error.response?.data?.error || 'Error al obtener slots disponibles' };
   }
 };

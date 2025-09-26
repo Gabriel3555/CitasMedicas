@@ -66,23 +66,18 @@ const CitaCreateScreen = ({ navigation }) => {
   };
 
   const handleDateConfirm = (date) => {
-    console.log('Date selected:', date);
-    console.log('Formatted date:', formatDate(date));
     setSelectedDate(date);
     setFecha(formatDate(date));
     setShowDatePicker(false);
   };
 
   const handleDatePress = () => {
-    console.log('DatePicker opening...');
     setShowDatePicker(true);
   };
 
   const handleDateChange = (event, date) => {
     setShowDatePicker(false);
     if (date) {
-      console.log('Date selected:', date);
-      console.log('Formatted date:', formatDate(date));
       setSelectedDate(date);
       setFecha(formatDate(date));
       // Limpiar hora seleccionada cuando cambia la fecha
@@ -95,115 +90,44 @@ const CitaCreateScreen = ({ navigation }) => {
   };
 
   const loadAvailableSlots = async (doctorId, date) => {
-    console.log('CitaCreateScreen@loadAvailableSlots - Function called', {
-      doctorId,
-      date,
-      currentState: {
-        doctor_id,
-        fecha,
-        availableSlotsCount: availableSlots.length,
-        loadingSlots
-      }
-    });
-
     if (!doctorId || !date) {
-      console.log('CitaCreateScreen@loadAvailableSlots - Missing parameters, returning early', {
-        doctorId,
-        date
-      });
       return;
     }
 
     setLoadingSlots(true);
-    console.log('CitaCreateScreen@loadAvailableSlots - Starting slot loading', {
-      doctorId,
-      date,
-      timestamp: new Date().toISOString()
-    });
 
     const result = await getAvailableSlots(doctorId, date);
 
-    console.log('CitaCreateScreen@loadAvailableSlots - API result received', {
-      success: result.success,
-      error: result.error,
-      data: result.data
-    });
-
     if (result.success) {
       const slots = result.data.slots || [];
-      console.log('CitaCreateScreen@loadAvailableSlots - Setting available slots', {
-        slotsCount: slots.length,
-        slots: slots
-      });
       setAvailableSlots(slots);
     } else {
-      console.error('CitaCreateScreen@loadAvailableSlots - Error loading slots', {
-        error: result.error
-      });
       setAvailableSlots([]);
       Alert.alert('Error', 'No se pudieron cargar los horarios disponibles');
     }
 
     setLoadingSlots(false);
-    console.log('CitaCreateScreen@loadAvailableSlots - Function completed', {
-      finalAvailableSlotsCount: result.success ? (result.data.slots || []).length : 0,
-      loadingSlots: false
-    });
   };
 
   const handleCreate = async () => {
-    console.log('CitaCreateScreen@handleCreate - Function called', {
-      formData: {
-        pacientes_id,
-        doctor_id,
-        fecha,
-        hora
-      },
-      validationChecks: {
-        hasPaciente: !!pacientes_id,
-        hasDoctor: !!doctor_id,
-        hasFecha: !!fecha,
-        hasHora: !!hora
-      }
-    });
-
     if (!pacientes_id || !doctor_id || !fecha || !hora) {
-      console.log('CitaCreateScreen@handleCreate - Validation failed: missing fields');
       Alert.alert('Error', 'Por favor completa todos los campos');
       return;
     }
 
     if (!validateDate(fecha)) {
-      console.log('CitaCreateScreen@handleCreate - Date validation failed', {
-        fecha,
-        isValid: validateDate(fecha)
-      });
       Alert.alert('Error', 'La fecha debe estar en formato YYYY-MM-DD y no puede ser anterior a hoy');
       return;
     }
 
-    console.log('CitaCreateScreen@handleCreate - Validation passed, creating appointment', {
-      appointmentData: { pacientes_id, doctor_id, fecha, hora }
-    });
-
     setLoading(true);
     const result = await createCita({ pacientes_id, doctor_id, fecha, hora });
 
-    console.log('CitaCreateScreen@handleCreate - API result received', {
-      success: result.success,
-      error: result.error,
-      data: result.data
-    });
-
     setLoading(false);
     if (result.success) {
-      console.log('CitaCreateScreen@handleCreate - Appointment created successfully');
       Alert.alert('Éxito', 'Cita creada exitosamente');
       navigation.goBack();
     } else {
-      console.error('CitaCreateScreen@handleCreate - Appointment creation failed', {
-        error: result.error
-      });
       Alert.alert('Error', result.error);
     }
   };
@@ -294,46 +218,24 @@ const CitaCreateScreen = ({ navigation }) => {
 
           <Text style={styles.label}>Hora de la Cita:</Text>
           {(() => {
-            console.log('CitaCreateScreen - Rendering time slot section', {
-              loadingSlots,
-              availableSlotsCount: availableSlots.length,
-              doctor_id,
-              fecha,
-              hora,
-              availableSlots: availableSlots
-            });
-
             if (loadingSlots) {
-              console.log('CitaCreateScreen - Showing loading state');
               return (
                 <View style={styles.loadingContainer}>
                   <Text style={styles.loadingText}>Cargando horarios disponibles...</Text>
                 </View>
               );
             } else if (availableSlots.length > 0) {
-              console.log('CitaCreateScreen - Showing slots dropdown', {
-                slotsCount: availableSlots.length,
-                selectedHora: hora
-              });
               return (
                 <View style={styles.pickerContainer}>
                   <Picker
                     selectedValue={hora}
                     onValueChange={(itemValue) => {
-                      console.log('CitaCreateScreen - Time slot selected', {
-                        selectedValue: itemValue,
-                        previousValue: hora
-                      });
                       setHora(itemValue);
                     }}
                     style={styles.picker}
                   >
                     <Picker.Item label="🕐 Selecciona una hora..." value="" />
                     {availableSlots.map((slot, index) => {
-                      console.log('CitaCreateScreen - Rendering slot option', {
-                        index,
-                        slot: slot
-                      });
                       return (
                         <Picker.Item
                           key={index}
@@ -347,11 +249,6 @@ const CitaCreateScreen = ({ navigation }) => {
               );
             } else {
               const message = doctor_id && fecha ? '⏰ No hay horarios disponibles para esta fecha' : '💡 Selecciona un doctor y fecha para ver horarios disponibles';
-              console.log('CitaCreateScreen - Showing info message', {
-                message,
-                hasDoctor: !!doctor_id,
-                hasFecha: !!fecha
-              });
               return (
                 <View style={styles.infoContainer}>
                   <Text style={styles.infoText}>{message}</Text>
