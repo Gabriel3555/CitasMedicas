@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform, Modal, TextInput } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 import { getDoctores } from '../../apis/doctoresApi';
 import { getEspecialidades } from '../../apis/especialidadesApi';
@@ -18,27 +18,24 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch specialties
       const specialtiesResult = await getEspecialidades();
       if (specialtiesResult.success) {
         setSpecialties(specialtiesResult.data);
       }
 
-      // Fetch doctors (initially all doctors)
       await fetchDoctors();
     };
     fetchData();
   }, []);
 
+
   const fetchDoctors = async (especialidadId = null) => {
     const result = await getDoctores(especialidadId);
     if (result.success) {
-      // Filter doctors that have both start_time and end_time
       const availableDoctors = result.data.filter(doctor =>
         doctor.start_time && doctor.end_time
       );
       setDoctors(availableDoctors);
-      // Reset selected doctor if it's not in the filtered list
       if (selectedDoctor && !availableDoctors.find(d => d.id === selectedDoctor.id)) {
         setSelectedDoctor(null);
       }
@@ -46,15 +43,17 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   };
 
   const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || new Date();
     setShowDatePicker(false);
-    setSelectedDate(currentDate);
+    if (selectedDate) {
+      setSelectedDate(selectedDate);
+    }
   };
 
   const onTimeChange = (event, selectedTime) => {
-    const currentTime = selectedTime || new Date();
     setShowTimePicker(false);
-    setSelectedTime(currentTime);
+    if (selectedTime) {
+      setSelectedTime(selectedTime);
+    }
   };
 
   const handleSchedule = async () => {
@@ -63,7 +62,6 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       return;
     }
 
-    // Validate schedule: weekdays and within doctor's hours
     const day = selectedDate.getDay();
     if (day === 0 || day === 6) {
       Alert.alert('Error', 'Las citas solo se pueden agendar de lunes a viernes');
@@ -186,6 +184,11 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
 
+
+        <TouchableOpacity style={styles.button} onPress={handleSchedule}>
+          <Text style={styles.buttonText}>Agendar</Text>
+        </TouchableOpacity>
+
         {showDatePicker && (
           <DateTimePicker
             value={selectedDate}
@@ -202,12 +205,9 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
             mode="time"
             display="default"
             onChange={onTimeChange}
+            minuteInterval={15}
           />
         )}
-
-        <TouchableOpacity style={styles.button} onPress={handleSchedule}>
-          <Text style={styles.buttonText}>Agendar</Text>
-        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
