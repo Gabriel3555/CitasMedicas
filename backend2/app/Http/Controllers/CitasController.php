@@ -39,19 +39,9 @@ class CitasController extends Controller
 
 
     public function store(Request $request) {
-        \Log::info('CitasController@store - Request received', [
-            'params' => $request->all(),
-            'user_id' => Auth::id(),
-            'user_role' => Auth::user()->role ?? 'unknown'
-        ]);
-
         $user = Auth::user();
 
         if (!in_array($user->role, ['admin', 'paciente', 'doctor'])) {
-            \Log::warning('CitasController@store - Unauthorized access', [
-                'user_id' => $user->id,
-                'user_role' => $user->role
-            ]);
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -64,10 +54,7 @@ class CitasController extends Controller
             ]);
 
             if ($validate->fails()) {
-                \Log::error('CitasController@store - Validation failed', [
-                    'errors' => $validate->errors(),
-                    'params' => $request->all()
-                ]);
+                
                 return response()->json($validate->errors(), 400);
             }
 
@@ -81,18 +68,13 @@ class CitasController extends Controller
             ]);
 
             if ($validate->fails()) {
-                \Log::error('CitasController@store - Validation failed', [
-                    'errors' => $validate->errors(),
-                    'params' => $request->all()
-                ]);
+                
                 return response()->json($validate->errors(), 400);
             }
 
             $paciente = \App\Models\Paciente::where('user_id', $user->id)->first();
             if (!$paciente) {
-                \Log::error('CitasController@store - Paciente not found for user', [
-                    'user_id' => $user->id
-                ]);
+                
                 return response()->json(['error' => 'Paciente profile not found'], 404);
             }
 
@@ -106,18 +88,13 @@ class CitasController extends Controller
             ]);
 
             if ($validate->fails()) {
-                \Log::error('CitasController@store - Validation failed', [
-                    'errors' => $validate->errors(),
-                    'params' => $request->all()
-                ]);
+                
                 return response()->json($validate->errors(), 400);
             }
 
             $doctor = \App\Models\Doctor::where('user_id', $user->id)->first();
             if (!$doctor) {
-                \Log::error('CitasController@store - Doctor not found for user', [
-                    'user_id' => $user->id
-                ]);
+                
                 return response()->json(['error' => 'Doctor profile not found'], 404);
             }
 
@@ -129,48 +106,24 @@ class CitasController extends Controller
                 $startTime = strtotime($doctor->start_time);
                 $endTime = strtotime($doctor->end_time);
 
-                \Log::info('CitasController@store - Doctor schedule validation', [
-                    'appointment_time' => $request->hora,
-                    'appointment_timestamp' => $appointmentTime,
-                    'doctor_start_time' => $doctor->start_time,
-                    'doctor_start_timestamp' => $startTime,
-                    'doctor_end_time' => $doctor->end_time,
-                    'doctor_end_timestamp' => $endTime,
-                    'is_within_schedule' => ($appointmentTime >= $startTime && $appointmentTime < $endTime)
-                ]);
+                
 
                 if ($appointmentTime < $startTime || $appointmentTime >= $endTime) {
-                    \Log::warning('CitasController@store - Appointment time outside doctor schedule', [
-                        'appointment_time' => $request->hora,
-                        'doctor_schedule' => [$doctor->start_time, $doctor->end_time]
-                    ]);
+                    
                     return response()->json(['message' => 'La hora seleccionada está fuera de su horario laboral'], 400);
                 }
             } else {
-                \Log::info('CitasController@store - Doctor has no schedule configured, skipping schedule validation', [
-                    'doctor_id' => $doctor->id
-                ]);
+                
             }
         }
 
-        \Log::info('CitasController@store - Validation passed, processing appointment', [
-            'pacientes_id' => $pacientes_id,
-            'doctor_id' => $doctor_id,
-            'fecha' => $request->fecha,
-            'hora' => $request->hora
-        ]);
+        
 
         $doctor = Doctor::find($doctor_id);
-        \Log::info('CitasController@store - Doctor lookup', [
-            'doctor_id' => $doctor_id,
-            'doctor_found' => $doctor ? true : false,
-            'doctor_schedule' => $doctor ? ['start_time' => $doctor->start_time, 'end_time' => $doctor->end_time] : null
-        ]);
+        
 
         if (!$doctor) {
-            \Log::warning('CitasController@store - Doctor not found', [
-                'doctor_id' => $doctor_id
-            ]);
+            
             return response()->json(['error' => 'Doctor not found'], 404);
         }
 
@@ -179,24 +132,10 @@ class CitasController extends Controller
                               ->where('hora', $request->hora)
                               ->first();
 
-        \Log::info('CitasController@store - Slot availability check', [
-            'doctor_id' => $doctor_id,
-            'fecha' => $request->fecha,
-            'hora' => $request->hora,
-            'slot_occupied' => $existingCita ? true : false,
-            'existing_cita_id' => $existingCita ? $existingCita->id : null
-        ]);
+        
 
         if ($existingCita) {
-            \Log::warning('CitasController@store - Slot already occupied', [
-                'existing_cita_id' => $existingCita->id,
-                'conflicting_appointment' => [
-                    'pacientes_id' => $existingCita->pacientes_id,
-                    'doctor_id' => $existingCita->doctor_id,
-                    'fecha' => $existingCita->fecha,
-                    'hora' => $existingCita->hora
-                ]
-            ]);
+            
             return response()->json(['message' => 'Este horario ya está ocupado'], 409);
         }
 
@@ -205,27 +144,14 @@ class CitasController extends Controller
             $startTime = strtotime($doctor->start_time);
             $endTime = strtotime($doctor->end_time);
 
-            \Log::info('CitasController@store - Schedule validation', [
-                'appointment_time' => $request->hora,
-                'appointment_timestamp' => $appointmentTime,
-                'doctor_start_time' => $doctor->start_time,
-                'doctor_start_timestamp' => $startTime,
-                'doctor_end_time' => $doctor->end_time,
-                'doctor_end_timestamp' => $endTime,
-                'is_within_schedule' => ($appointmentTime >= $startTime && $appointmentTime < $endTime)
-            ]);
+            
 
             if ($appointmentTime < $startTime || $appointmentTime >= $endTime) {
-                \Log::warning('CitasController@store - Appointment time outside doctor schedule', [
-                    'appointment_time' => $request->hora,
-                    'doctor_schedule' => [$doctor->start_time, $doctor->end_time]
-                ]);
+                
                 return response()->json(['message' => 'La hora seleccionada está fuera del horario laboral del doctor'], 400);
             }
         } else {
-            \Log::info('CitasController@store - Doctor has no schedule configured, skipping schedule validation', [
-                'doctor_id' => $doctor->id
-            ]);
+            
         }
 
         $citaData = $request->all();
@@ -238,16 +164,11 @@ class CitasController extends Controller
             $citaData['status'] = 'aprobada';
         }
 
-        \Log::info('CitasController@store - Creating appointment', [
-            'cita_data' => $citaData
-        ]);
+        
 
         $cita = Cita::create($citaData);
 
-        \Log::info('CitasController@store - Appointment created successfully', [
-            'cita_id' => $cita->id,
-            'cita_data' => $cita->toArray()
-        ]);
+        
 
         return response()->json($cita, 201);
     }
@@ -346,19 +267,12 @@ class CitasController extends Controller
 
     public function getAvailableSlots(Request $request)
     {
-        \Log::info('CitasController@getAvailableSlots - Request received', [
-            'params' => $request->all(),
-            'user_id' => Auth::id(),
-            'user_role' => Auth::user()->role ?? 'unknown'
-        ]);
+        
 
         $user = Auth::user();
 
         if (!in_array($user->role, ['admin', 'paciente'])) {
-            \Log::warning('CitasController@getAvailableSlots - Unauthorized access', [
-                'user_id' => $user->id,
-                'user_role' => $user->role
-            ]);
+            
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -368,45 +282,27 @@ class CitasController extends Controller
         ]);
 
         if ($validate->fails()) {
-            \Log::error('CitasController@getAvailableSlots - Validation failed', [
-                'errors' => $validate->errors(),
-                'params' => $request->all()
-            ]);
+            
             return response()->json($validate->errors(), 400);
         }
 
         $doctor = Doctor::find($request->doctor_id);
-        \Log::info('CitasController@getAvailableSlots - Doctor lookup', [
-            'doctor_id' => $request->doctor_id,
-            'doctor_found' => $doctor ? true : false,
-            'doctor_schedule' => $doctor ? ['start_time' => $doctor->start_time, 'end_time' => $doctor->end_time] : null
-        ]);
+        
 
         if (!$doctor) {
-            \Log::warning('CitasController@getAvailableSlots - Doctor not found', [
-                'doctor_id' => $request->doctor_id
-            ]);
+            
             return response()->json(['message' => 'Doctor not found'], 404);
         }
 
         if (!$doctor->start_time || !$doctor->end_time) {
-            \Log::info('CitasController@getAvailableSlots - Doctor has no schedule configured', [
-                'doctor_id' => $doctor->id,
-                'start_time' => $doctor->start_time,
-                'end_time' => $doctor->end_time
-            ]);
+            
             return response()->json(['slots' => []], 200);
         }
 
         $slots = [];
         $startTime = strtotime($doctor->start_time);
         $endTime = strtotime($doctor->end_time);
-        \Log::info('CitasController@getAvailableSlots - Generating slots', [
-            'start_time_str' => $doctor->start_time,
-            'end_time_str' => $doctor->end_time,
-            'start_timestamp' => $startTime,
-            'end_timestamp' => $endTime
-        ]);
+        
 
         $currentTime = $startTime;
         $slotCount = 0;
@@ -426,21 +322,14 @@ class CitasController extends Controller
             }
         }
 
-        \Log::info('CitasController@getAvailableSlots - Slots generated', [
-            'total_slots_generated' => $slotCount,
-            'slots' => $slots
-        ]);
+        
 
         $existingAppointments = Cita::where('doctor_id', $request->doctor_id)
                                     ->where('fecha', $request->fecha)
                                     ->pluck('hora')
                                     ->toArray();
 
-        \Log::info('CitasController@getAvailableSlots - Existing appointments found', [
-            'doctor_id' => $request->doctor_id,
-            'fecha' => $request->fecha,
-            'existing_appointments' => $existingAppointments
-        ]);
+        
 
         $occupiedCount = 0;
         foreach ($slots as &$slot) {
@@ -450,20 +339,14 @@ class CitasController extends Controller
             }
         }
 
-        \Log::info('CitasController@getAvailableSlots - Slots marked as occupied', [
-            'occupied_slots' => $occupiedCount,
-            'total_slots_after_filtering' => count($slots)
-        ]);
+        
 
         $availableSlots = array_filter($slots, function($slot) {
             return $slot['disponible'];
         });
 
         $finalSlots = array_values($availableSlots);
-        \Log::info('CitasController@getAvailableSlots - Final available slots', [
-            'available_slots_count' => count($finalSlots),
-            'available_slots' => $finalSlots
-        ]);
+        
 
         return response()->json(['slots' => $finalSlots], 200);
     }

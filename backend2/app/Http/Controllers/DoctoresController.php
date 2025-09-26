@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Doctor;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -32,11 +31,7 @@ class DoctoresController extends Controller
     }
 
     public function store(Request $request) {
-        \Log::info('DoctoresController@store - Request received', [
-            'params' => $request->all(),
-            'user_id' => Auth::id(),
-            'user_role' => Auth::user()->role ?? 'unknown'
-        ]);
+        
 
         $validate = Validator::make($request->all(), [
             'nombre' => 'required|string|unique:doctores,nombre',
@@ -49,17 +44,14 @@ class DoctoresController extends Controller
         ]);
 
         if ($validate->fails()) {
-            \Log::error('DoctoresController@store - Validation failed', [
-                'errors' => $validate->errors(),
-                'params' => $request->all()
-            ]);
+            
             return response()->json([
                 'error' => 'Validation failed',
                 'details' => $validate->errors()
             ], 400);
         }
 
-        \Log::info('DoctoresController@store - Validation passed, creating user and doctor');
+        
 
         try {
             $defaultPassword = 'password123';
@@ -70,21 +62,14 @@ class DoctoresController extends Controller
                 'role' => 'doctor',
             ]);
 
-            \Log::info('DoctoresController@store - User created successfully', [
-                'user_id' => $user->id,
-                'user_email' => $user->email
-            ]);
+            
 
             $doctorData = $request->all();
             $doctorData['user_id'] = $user->id;
 
             $doctor = Doctor::create($doctorData);
 
-            \Log::info('DoctoresController@store - Doctor created successfully', [
-                'doctor_id' => $doctor->id,
-                'user_id' => $user->id,
-                'doctor_data' => $doctor->toArray()
-            ]);
+            
 
             $doctor->load(['eps', 'especialidad']);
             return response()->json([
@@ -97,11 +82,7 @@ class DoctoresController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            \Log::error('DoctoresController@store - Exception during creation', [
-                'exception_message' => $e->getMessage(),
-                'exception_trace' => $e->getTraceAsString(),
-                'request_data' => $request->all()
-            ]);
+            
             return response()->json([
                 'error' => 'Error creating doctor and user',
                 'message' => $e->getMessage()
@@ -110,12 +91,7 @@ class DoctoresController extends Controller
     }
 
     public function update(Request $request, $id) {
-        \Log::info('Doctor update attempt', [
-            'doctor_id' => $id,
-            'request_data' => $request->all(),
-            'request_method' => $request->method(),
-            'user_agent' => $request->userAgent()
-        ]);
+        
 
         $rules = [];
 
@@ -141,55 +117,35 @@ class DoctoresController extends Controller
             $rules['end_time'] = 'nullable|string|max:255';
         }
 
-        \Log::info('Validation rules applied', [
-            'doctor_id' => $id,
-            'rules' => $rules,
-            'fields_present' => array_keys($request->all())
-        ]);
+        
 
         $validate = Validator::make($request->all(), $rules);
 
         if ($validate->fails()) {
-            \Log::error('Doctor update validation failed', [
-                'doctor_id' => $id,
-                'request_data' => $request->all(),
-                'validation_errors' => $validate->errors()->toArray()
-            ]);
+            
             return response()->json($validate->errors(), 400);
         }
 
-        \Log::info('Validation passed, looking for doctor', ['doctor_id' => $id]);
+        
 
         $doctor = Doctor::find($id);
 
         if (!$doctor) {
-            \Log::error('Doctor not found for update', ['doctor_id' => $id]);
+            
             return response()->json(['message' => 'Doctor not found'], 404);
         }
 
-        \Log::info('Doctor found, attempting update', [
-            'doctor_id' => $id,
-            'current_data' => $doctor->toArray(),
-            'update_data' => $request->all()
-        ]);
+        
 
         try {
             $doctor->update($request->all());
             $doctor->load(['eps', 'especialidad']);
 
-            \Log::info('Doctor update successful', [
-                'doctor_id' => $id,
-                'updated_data' => $doctor->toArray()
-            ]);
+            
 
             return response()->json($doctor, 200);
         } catch (\Exception $e) {
-            \Log::error('Doctor update failed with exception', [
-                'doctor_id' => $id,
-                'request_data' => $request->all(),
-                'exception_message' => $e->getMessage(),
-                'exception_trace' => $e->getTraceAsString()
-            ]);
+            
 
             return response()->json([
                 'message' => 'Error updating doctor',
@@ -210,31 +166,27 @@ class DoctoresController extends Controller
     }
 
     public function updateMySchedule(Request $request) {
-        \Log::info('updateMySchedule called', [
-            'user_id' => Auth::id(),
-            'user_role' => Auth::user()->role ?? 'no user',
-            'request_data' => $request->all()
-        ]);
+        
 
         $user = Auth::user();
 
         if (!$user) {
-            \Log::error('No authenticated user');
+            
             return response()->json(['error' => 'No authenticated user'], 401);
         }
 
         if ($user->role !== 'doctor') {
-            \Log::error('User is not a doctor', ['role' => $user->role]);
+            
             return response()->json(['error' => 'Unauthorized - User is not a doctor'], 403);
         }
 
         $doctor = Doctor::where('user_id', $user->id)->first();
         if (!$doctor) {
-            \Log::error('Doctor profile not found for user', ['user_id' => $user->id]);
+            
             return response()->json(['error' => 'Doctor profile not found'], 404);
         }
 
-        \Log::info('Doctor found', ['doctor_id' => $doctor->id]);
+        
 
         $validate = Validator::make($request->all(), [
             'start_time' => 'required|string|max:255',
