@@ -20,7 +20,7 @@ class PacienteFactory extends Factory
             'nombre' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
             'telefono' => $this->faker->phoneNumber,
-            'eps_id' => $this->faker->numberBetween(1, 10), // Random EPS
+            'eps_id' => $this->faker->numberBetween(1, 10),
         ];
     }
 }

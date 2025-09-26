@@ -1,12 +1,27 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { deleteEspecialidad } from "../../apis/especialidadesApi";
 
 const EspecialidadDeleteScreen = ({ route, navigation }) => {
   const { especialidad } = route.params;
+  const [loading, setLoading] = useState(false);
 
-  const handleDelete = () => {
-    alert(`Especialidad "${especialidad.nombre}" eliminada (solo UI)`);
-    navigation.popToTop();
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      const result = await deleteEspecialidad(especialidad.id);
+      if (result.success) {
+        Alert.alert('Éxito', 'Especialidad eliminada correctamente', [
+          { text: 'OK', onPress: () => navigation.popToTop() }
+        ]);
+      } else {
+        Alert.alert('Error', result.error);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error inesperado al eliminar la especialidad');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -17,8 +32,11 @@ const EspecialidadDeleteScreen = ({ route, navigation }) => {
       <TouchableOpacity
         style={[styles.button, { backgroundColor: "red" }]}
         onPress={handleDelete}
+        disabled={loading}
       >
-        <Text style={styles.buttonText}>Eliminar</Text>
+        <Text style={styles.buttonText}>
+          {loading ? 'Eliminando...' : 'Eliminar'}
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity

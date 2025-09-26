@@ -14,13 +14,11 @@ const CitasListScreen = ({ navigation }) => {
 
   const fetchUserAndCitas = async () => {
     try {
-      // Get user info to determine role
       const userResult = await me();
       if (userResult.success) {
         setUserRole(userResult.data.role);
       }
 
-      // Fetch citas based on role
       const citasResult = userResult.data?.role === 'paciente' ? await getMyCitas() : await getCitas();
 
       if (citasResult.success) {

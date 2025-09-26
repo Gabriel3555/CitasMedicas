@@ -7,7 +7,6 @@ import { getPacientes } from '../../apis/pacientesApi';
 import { getDoctores } from '../../apis/doctoresApi';
 
 const CitaCreateScreen = ({ navigation }) => {
-  // Función auxiliar para formatear fechas
   const formatDate = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -31,7 +30,6 @@ const CitaCreateScreen = ({ navigation }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Cargar pacientes
       setLoadingPacientes(true);
       const pacientesResult = await getPacientes();
       if (pacientesResult.success) {
@@ -41,7 +39,6 @@ const CitaCreateScreen = ({ navigation }) => {
       }
       setLoadingPacientes(false);
 
-      // Cargar doctores
       setLoadingDoctores(true);
       const doctoresResult = await getDoctores();
       if (doctoresResult.success) {
@@ -80,9 +77,7 @@ const CitaCreateScreen = ({ navigation }) => {
     if (date) {
       setSelectedDate(date);
       setFecha(formatDate(date));
-      // Limpiar hora seleccionada cuando cambia la fecha
       setHora("");
-      // Cargar slots disponibles si hay doctor seleccionado
       if (doctor_id) {
         loadAvailableSlots(doctor_id, formatDate(date));
       }
@@ -179,9 +174,7 @@ const CitaCreateScreen = ({ navigation }) => {
                 selectedValue={doctor_id}
                 onValueChange={(itemValue) => {
                   setDoctorId(itemValue);
-                  // Limpiar hora cuando cambia el doctor
                   setHora("");
-                  // Cargar slots disponibles si hay fecha seleccionada
                   if (fecha && itemValue) {
                     loadAvailableSlots(itemValue, fecha);
                   } else {
@@ -282,7 +275,7 @@ const CitaCreateScreen = ({ navigation }) => {
           display={Platform.OS === 'android' ? 'default' : 'spinner'}
           onChange={handleDateChange}
           minimumDate={new Date()}
-          maximumDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)} // Máximo 1 año en el futuro
+          maximumDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)}
         />
       )}
     </ScrollView>

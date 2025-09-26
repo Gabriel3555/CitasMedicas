@@ -36,14 +36,12 @@ const ProfileScreen = ({ navigation }) => {
         setUser(result.data);
 
         if (result.data.photo_url) {
-          // Verificar si la URL es válida
           if (typeof result.data.photo_url === 'string' && result.data.photo_url.trim() !== '') {
             setPhotoLoading(true);
             setPhoto(result.data.photo_url);
             setPhotoLoading(false);
           }
         } else if (result.data.photo) {
-          // Verificar si la URL es válida
           if (typeof result.data.photo === 'string' && result.data.photo.trim() !== '') {
             setPhotoLoading(true);
             setPhoto(result.data.photo);
@@ -76,7 +74,6 @@ const ProfileScreen = ({ navigation }) => {
 
   const openCamera = async () => {
     try {
-      // Solicitar permisos de cámara
       const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
 
       if (cameraPermission.status !== 'granted') {
@@ -101,7 +98,6 @@ const ProfileScreen = ({ navigation }) => {
 
   const openGallery = async () => {
     try {
-      // Solicitar permisos de galería
       const galleryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (galleryPermission.status !== 'granted') {
@@ -194,14 +190,12 @@ const ProfileScreen = ({ navigation }) => {
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(editEmail)) {
       Alert.alert('Error', 'Por favor ingresa un email válido');
       return;
     }
 
-    // For patients and doctors, phone is also required
     if ((user.role === 'paciente' || user.role === 'doctor') && !editPhone.trim()) {
       Alert.alert('Error', `Teléfono es obligatorio para ${user.role === 'paciente' ? 'pacientes' : 'doctores'}`);
       return;
@@ -222,7 +216,6 @@ const ProfileScreen = ({ navigation }) => {
 
     if (result.success) {
       Alert.alert('Éxito', 'Perfil actualizado exitosamente');
-      // Reload user data to get updated information
       const userResult = await me();
       if (userResult.success) {
         setUser(userResult.data);
@@ -375,7 +368,6 @@ const ProfileScreen = ({ navigation }) => {
 
        </Animatable.View>
  
-       {/* Change Password Modal */}
        <Modal
          visible={showPasswordModal}
          animationType="slide"
@@ -437,7 +429,6 @@ const ProfileScreen = ({ navigation }) => {
          </View>
        </Modal>
 
-       {/* Edit Profile Modal */}
        <Modal
          visible={showEditProfileModal}
          animationType="slide"

@@ -12,7 +12,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Add 'no_asistio' to the enum values
         DB::statement("ALTER TABLE citas MODIFY COLUMN status ENUM('pendiente_por_aprobador', 'aprobada', 'no_aprobado', 'completada', 'no_asistio') DEFAULT 'pendiente_por_aprobador'");
     }
 
@@ -21,7 +20,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Remove 'no_asistio' from the enum values
         DB::statement("ALTER TABLE citas MODIFY COLUMN status ENUM('pendiente_por_aprobador', 'aprobada', 'no_aprobado', 'completada') DEFAULT 'pendiente_por_aprobador'");
     }
 };

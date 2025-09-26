@@ -37,7 +37,6 @@ const AdminDoctorScheduleScreen = ({ navigation, route }) => {
       const timeString = formatTime(selectedDate);
       setFormData({ ...formData, start_time: timeString });
 
-      // Si ya hay una hora de fin configurada, validar que no sea anterior
       if (formData.end_time) {
         const startTime = new Date(`2000-01-01T${timeString}:00`);
         const endTime = new Date(`2000-01-01T${formData.end_time}:00`);
@@ -60,7 +59,6 @@ const AdminDoctorScheduleScreen = ({ navigation, route }) => {
     if (selectedDate) {
       const timeString = formatTime(selectedDate);
 
-      // Validar que la hora de fin no sea anterior a la hora de inicio
       if (formData.start_time) {
         const startTime = new Date(`2000-01-01T${formData.start_time}:00`);
         const endTime = new Date(`2000-01-01T${timeString}:00`);
@@ -71,7 +69,7 @@ const AdminDoctorScheduleScreen = ({ navigation, route }) => {
             'La hora de fin debe ser posterior a la hora de inicio.',
             [{ text: 'OK' }]
           );
-          return; // No actualizar si la validación falla
+          return;
         }
       }
 
@@ -93,28 +91,24 @@ const AdminDoctorScheduleScreen = ({ navigation, route }) => {
     console.log('AdminDoctorScheduleScreen: Starting handleSubmit');
     console.log('Current formData:', formData);
 
-    // Validar que al menos uno de los campos esté lleno
     if (!formData.start_time && !formData.end_time) {
       console.log('Validation failed: No schedule configured');
       Alert.alert('Error', 'Debe configurar al menos un horario de trabajo');
       return;
     }
 
-    // Si se proporciona start_time, debe ser válido
     if (formData.start_time && !validateTime(formData.start_time)) {
       console.log('Validation failed: Invalid start_time format', formData.start_time);
       Alert.alert('Error', 'Formato de hora de inicio inválido. Use HH:MM (ej: 08:00)');
       return;
     }
 
-    // Si se proporciona end_time, debe ser válido
     if (formData.end_time && !validateTime(formData.end_time)) {
       console.log('Validation failed: Invalid end_time format', formData.end_time);
       Alert.alert('Error', 'Formato de hora de fin inválido. Use HH:MM (ej: 17:00)');
       return;
     }
 
-    // Si se proporcionan ambas horas, validar que start_time sea antes que end_time
     if (formData.start_time && formData.end_time) {
       const start = new Date(`2000-01-01T${formData.start_time}:00`);
       const end = new Date(`2000-01-01T${formData.end_time}:00`);
@@ -129,7 +123,6 @@ const AdminDoctorScheduleScreen = ({ navigation, route }) => {
     console.log('Validation passed, preparing to send data');
     setLoading(true);
 
-    // Solo enviar los campos de horario para actualizar
     const scheduleData = {
       start_time: formData.start_time,
       end_time: formData.end_time

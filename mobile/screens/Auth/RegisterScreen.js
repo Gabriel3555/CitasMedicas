@@ -15,14 +15,12 @@ const RegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Additional fields for specific roles
   const [telefono, setTelefono] = useState("");
   const [epsId, setEpsId] = useState("");
   const [especialidadId, setEspecialidadId] = useState("");
   const [epsList, setEpsList] = useState([]);
   const [especialidadesList, setEspecialidadesList] = useState([]);
 
-  // Estados para validación
   const [nombreError, setNombreError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -35,13 +33,11 @@ const RegisterScreen = ({ navigation }) => {
 
   const loadEpsAndEspecialidades = async () => {
     try {
-      // Load EPS list
       const epsResult = await getEps();
       if (epsResult.success) {
         setEpsList(epsResult.data);
       }
 
-      // Load especialidades list
       const especialidadesResult = await getEspecialidades();
       if (especialidadesResult.success) {
         setEspecialidadesList(especialidadesResult.data);
@@ -127,7 +123,6 @@ const RegisterScreen = ({ navigation }) => {
 
     setLoading(true);
 
-    // Prepare additional data based on role
     let additionalData = {};
     if (role === 'paciente') {
       additionalData = {
@@ -269,7 +264,6 @@ const RegisterScreen = ({ navigation }) => {
               {roleError ? <Animatable.Text animation="shake" style={styles.errorText}>{roleError}</Animatable.Text> : null}
             </Animatable.View>
 
-            {/* Additional fields for Paciente role */}
             {role === 'paciente' && (
               <>
                 <Animatable.View animation="slideInUp" duration={600} delay={1300} style={styles.inputContainer}>
@@ -301,7 +295,6 @@ const RegisterScreen = ({ navigation }) => {
               </>
             )}
 
-            {/* Additional fields for Doctor role */}
             {role === 'doctor' && (
               <>
                 <Animatable.View animation="slideInUp" duration={600} delay={1300} style={styles.inputContainer}>

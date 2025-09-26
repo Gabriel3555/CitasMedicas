@@ -16,13 +16,11 @@ const DoctorScheduleAppointmentScreen = ({ navigation }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch patients
       const pacientesResult = await getPacientes();
       if (pacientesResult.success) {
         setPacientes(pacientesResult.data);
       }
 
-      // Fetch doctor schedule
       const userResult = await me();
       if (userResult.success && userResult.data.doctor_profile) {
         setDoctorSchedule({
@@ -52,14 +50,12 @@ const DoctorScheduleAppointmentScreen = ({ navigation }) => {
       return;
     }
 
-    // Validate schedule: weekdays only
     const day = selectedDate.getDay();
     if (day === 0 || day === 6) {
       Alert.alert('Error', 'Las citas solo se pueden agendar de lunes a viernes');
       return;
     }
 
-    // Validate doctor's schedule
     if (doctorSchedule && doctorSchedule.start_time && doctorSchedule.end_time) {
       const appointmentTime = selectedTime.toTimeString().split(' ')[0].substring(0, 5);
       const startTime = doctorSchedule.start_time.substring(0, 5);

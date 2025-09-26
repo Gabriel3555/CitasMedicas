@@ -8,7 +8,6 @@ import { getDoctores } from '../../apis/doctoresApi';
 import { getEspecialidades } from '../../apis/especialidadesApi';
 
 const AdminCitaCreateScreen = ({ navigation }) => {
-  // Función auxiliar para formatear fechas
   const formatDate = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -35,7 +34,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Limpiar slots cuando no hay doctor o fecha seleccionados
   useEffect(() => {
     if (!formData.doctor_id || !formData.fecha) {
       setAvailableSlots([]);
@@ -47,7 +45,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   }, []);
 
   const fetchData = async () => {
-    // Cargar pacientes
     setLoadingPacientes(true);
     const pacientesResult = await getPacientes();
     if (pacientesResult.success) {
@@ -57,7 +54,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
     }
     setLoadingPacientes(false);
 
-    // Cargar especialidades
     setLoadingEspecialidades(true);
     const especialidadesResult = await getEspecialidades();
     if (especialidadesResult.success) {
@@ -67,7 +63,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
     }
     setLoadingEspecialidades(false);
 
-    // Cargar doctores (inicialmente todos)
     await fetchDoctores();
   };
 
@@ -76,7 +71,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
     const doctoresResult = await getDoctores(especialidadId);
     if (doctoresResult.success) {
       setDoctores(doctoresResult.data);
-      // Reset selected doctor if it's not in the filtered list
       if (formData.doctor_id && !doctoresResult.data.find(d => d.id.toString() === formData.doctor_id)) {
         setFormData({ ...formData, doctor_id: '', hora: '' });
         setAvailableSlots([]);
@@ -106,13 +100,10 @@ const AdminCitaCreateScreen = ({ navigation }) => {
     if (date) {
       setSelectedDate(date);
       handleInputChange('fecha', formatDate(date));
-      // Limpiar hora seleccionada cuando cambia la fecha
       handleInputChange('hora', '');
-      // Cargar slots disponibles si hay doctor seleccionado
       if (formData.doctor_id) {
         loadAvailableSlots(formData.doctor_id, formatDate(date));
       } else {
-        // Si no hay doctor seleccionado, limpiar slots
         setAvailableSlots([]);
       }
     }
@@ -124,7 +115,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
       return;
     }
 
-    // Validar que el doctorId sea un número válido
     if (isNaN(parseInt(doctorId))) {
       setAvailableSlots([]);
       return;
@@ -149,14 +139,7 @@ const AdminCitaCreateScreen = ({ navigation }) => {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(date)) return false;
 
-    // Para testing, permitir cualquier fecha válida
-    // En producción, descomentar la línea siguiente:
-    // const selectedDate = new Date(date);
-    // const today = new Date();
-    // today.setHours(0, 0, 0, 0);
-    // return selectedDate >= today;
-
-    return true; // Permitir cualquier fecha para testing
+    return true;
   };
 
   const validateTime = (time) => {
@@ -262,10 +245,8 @@ const AdminCitaCreateScreen = ({ navigation }) => {
               <Picker
                 selectedValue={formData.doctor_id}
                 onValueChange={(value) => {
-                  // Actualizar estado y limpiar slots inmediatamente
                   const newFormData = { ...formData, doctor_id: value, hora: '' };
                   setFormData(newFormData);
-                  // Cargar slots disponibles si hay fecha seleccionada
                   if (formData.fecha && value) {
                     loadAvailableSlots(value, formData.fecha);
                   } else {
@@ -365,7 +346,7 @@ const AdminCitaCreateScreen = ({ navigation }) => {
           display={Platform.OS === 'android' ? 'default' : 'spinner'}
           onChange={handleDateChange}
           minimumDate={new Date()}
-          maximumDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)} // Máximo 1 año en el futuro
+          maximumDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)}
         />
       )}
     </ScrollView>

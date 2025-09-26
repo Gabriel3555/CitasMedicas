@@ -56,7 +56,6 @@ const AdminDoctorCreateScreen = ({ navigation }) => {
       const timeString = formatTime(selectedDate);
       setFormData({ ...formData, start_time: timeString });
 
-      // Si ya hay una hora de fin configurada, validar que no sea anterior
       if (formData.end_time) {
         const startTime = new Date(`2000-01-01T${timeString}:00`);
         const endTime = new Date(`2000-01-01T${formData.end_time}:00`);
@@ -79,7 +78,6 @@ const AdminDoctorCreateScreen = ({ navigation }) => {
     if (selectedDate) {
       const timeString = formatTime(selectedDate);
 
-      // Validar que la hora de fin no sea anterior a la hora de inicio
       if (formData.start_time) {
         const startTime = new Date(`2000-01-01T${formData.start_time}:00`);
         const endTime = new Date(`2000-01-01T${timeString}:00`);
@@ -90,7 +88,7 @@ const AdminDoctorCreateScreen = ({ navigation }) => {
             'La hora de fin debe ser posterior a la hora de inicio.',
             [{ text: 'OK' }]
           );
-          return; // No actualizar si la validación falla
+          return;
         }
       }
 
@@ -253,7 +251,6 @@ const AdminDoctorCreateScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Time Pickers */}
       {showStartTimePicker && (
         <DateTimePicker
           value={startTimeDate}

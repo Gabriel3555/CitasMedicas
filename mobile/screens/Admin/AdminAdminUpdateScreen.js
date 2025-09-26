@@ -23,7 +23,6 @@ const AdminAdminUpdateScreen = ({ navigation, route }) => {
       return;
     }
 
-    // Si se va a cambiar la contraseña, validar que coincida
     if (formData.password && formData.password !== formData.password_confirmation) {
       Alert.alert('Error', 'Las contraseñas no coinciden');
       return;
@@ -41,7 +40,6 @@ const AdminAdminUpdateScreen = ({ navigation, route }) => {
       role: formData.role
     };
 
-    // Solo incluir contraseña si se proporcionó
     if (formData.password) {
       updateData.password = formData.password;
     }

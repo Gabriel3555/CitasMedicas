@@ -54,8 +54,7 @@ class PacientesController extends Controller
         \Log::info('PacientesController@store - Validation passed, creating user and paciente');
 
         try {
-            // Create user account first
-            $defaultPassword = 'password123'; // Default password for patients
+            $defaultPassword = 'password123';
             $user = User::create([
                 'name' => $request->nombre,
                 'email' => $request->email,
@@ -68,7 +67,6 @@ class PacientesController extends Controller
                 'user_email' => $user->email
             ]);
 
-            // Create paciente linked to the user
             $pacienteData = $request->all();
             $pacienteData['user_id'] = $user->id;
 
@@ -80,7 +78,6 @@ class PacientesController extends Controller
                 'paciente_data' => $paciente->toArray()
             ]);
 
-            // Return paciente with user info
             $paciente->load('eps');
             return response()->json([
                 'paciente' => $paciente,
@@ -106,8 +103,8 @@ class PacientesController extends Controller
 
     public function update(Request $request, $id) {
         $validate = Validator::make($request->all(), [
-            'nombre' => 'required|string|unique:pacientes,nombre,'.$id, // Excluir el registro actual
-            'email' => 'required|string|email|max:255|unique:pacientes,email,'.$id, // Excluir el registro actual
+            'nombre' => 'required|string|unique:pacientes,nombre,'.$id,
+            'email' => 'required|string|email|max:255|unique:pacientes,email,'.$id,
             'telefono' => 'required|string|max:255',
             'eps_id' => 'required|exists:eps,id',
         ]);

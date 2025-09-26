@@ -11,14 +11,12 @@ const AdminCitasListScreen = ({ navigation }) => {
     fetchCitas();
   }, []);
 
-  // Refresh data when screen comes into focus (e.g., returning from create screen)
   useFocusEffect(
     React.useCallback(() => {
       fetchCitas();
     }, [])
   );
 
-  // Citas sorted by ID (descending: 3, 2, 1)
   const sortedCitas = useMemo(() => {
     return [...citas].sort((a, b) => b.id - a.id);
   }, [citas]);
@@ -62,17 +60,17 @@ const AdminCitasListScreen = ({ navigation }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'pendiente_por_aprobador':
-        return '#ffc107'; // Yellow
+        return '#ffc107';
       case 'aprobada':
-        return '#28a745'; // Green
+        return '#28a745';
       case 'no_aprobado':
-        return '#dc3545'; // Red
+        return '#dc3545';
       case 'completada':
-        return '#007bff'; // Blue
+        return '#007bff';
       case 'no_asistio':
-        return '#6c757d'; // Gray
+        return '#6c757d';
       default:
-        return '#6c757d'; // Default gray
+        return '#6c757d';
     }
   };
 
@@ -105,7 +103,7 @@ const AdminCitasListScreen = ({ navigation }) => {
             const result = await updateCitaStatus(citaId, newStatus);
             if (result.success) {
               Alert.alert('Éxito', `Estado actualizado a: ${getStatusText(newStatus)}`);
-              fetchCitas(); // Refresh the list
+              fetchCitas();
             } else {
               Alert.alert('Error', result.error);
             }
@@ -189,7 +187,6 @@ const AdminCitasListScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>🏥 Gestionar Citas</Text>
           <TouchableOpacity
@@ -200,9 +197,6 @@ const AdminCitasListScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-
-
-        {/* Appointments List */}
         {loading ? (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Cargando citas...</Text>
@@ -256,8 +250,6 @@ const styles = StyleSheet.create({
   },
   addBtnText: { color: 'white', fontWeight: 'bold', fontSize: 14 },
 
-
-  // List
   listContainer: {
     padding: 20,
     paddingTop: 0
@@ -285,7 +277,6 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
 
-  // Appointment Cards
   citaCard: {
     backgroundColor: 'white',
     borderRadius: 12,

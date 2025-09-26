@@ -1,12 +1,27 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { deleteDoctor } from "../../apis/doctoresApi";
 
 const DoctorDeleteScreen = ({ route, navigation }) => {
   const { doctor } = route.params;
+  const [loading, setLoading] = useState(false);
 
-  const handleDelete = () => {
-    alert(`Doctor "${doctor.nombre}" eliminado (solo UI)`);
-    navigation.popToTop();
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      const result = await deleteDoctor(doctor.id);
+      if (result.success) {
+        Alert.alert('Éxito', 'Doctor eliminado correctamente', [
+          { text: 'OK', onPress: () => navigation.popToTop() }
+        ]);
+      } else {
+        Alert.alert('Error', result.error);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error inesperado al eliminar el doctor');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -17,8 +32,11 @@ const DoctorDeleteScreen = ({ route, navigation }) => {
       <TouchableOpacity
         style={[styles.button, { backgroundColor: "red" }]}
         onPress={handleDelete}
+        disabled={loading}
       >
-        <Text style={styles.buttonText}>Eliminar</Text>
+        <Text style={styles.buttonText}>
+          {loading ? 'Eliminando...' : 'Eliminar'}
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity

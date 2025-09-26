@@ -25,14 +25,12 @@ const DoctorScheduleManagementScreen = ({ navigation }) => {
       const doctor = result.data.doctor_profile;
       setDoctorData(doctor);
 
-      // Initialize time strings
       const startTimeStr = doctor.start_time || '09:00';
       const endTimeStr = doctor.end_time || '17:00';
 
       setStartTime(startTimeStr);
       setEndTime(endTimeStr);
 
-      // Initialize Date objects for pickers
       const [startHours, startMinutes] = startTimeStr.split(':').map(Number);
       const [endHours, endMinutes] = endTimeStr.split(':').map(Number);
 
@@ -76,7 +74,6 @@ const DoctorScheduleManagementScreen = ({ navigation }) => {
       return;
     }
 
-    // Validate that start time is before end time
     const start = startTimeDate.getTime();
     const end = endTimeDate.getTime();
 

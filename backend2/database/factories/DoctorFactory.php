@@ -20,8 +20,8 @@ class DoctorFactory extends Factory
             'nombre' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
             'telefono' => $this->faker->phoneNumber,
-            'especialidad_id' => $this->faker->numberBetween(1, 5), // Random especialidad
-            'eps_id' => $this->faker->numberBetween(1, 10), // Random EPS
+            'especialidad_id' => $this->faker->numberBetween(1, 5),
+            'eps_id' => $this->faker->numberBetween(1, 10),
             'start_time' => $this->faker->time('H:i', '09:00'),
             'end_time' => $this->faker->time('H:i', '17:00'),
         ];

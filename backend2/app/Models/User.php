@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -69,13 +68,11 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
-    // Un usuario puede tener un paciente
     public function paciente()
     {
         return $this->hasOne(Paciente::class);
     }
 
-    // Un usuario puede tener un doctor
     public function doctor()
     {
         return $this->hasOne(Doctor::class);

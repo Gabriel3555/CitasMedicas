@@ -13,12 +13,10 @@ class CitasController extends Controller
     public function index() {
         $user = Auth::user();
 
-        // Solo administradores pueden ver citas
         if ($user->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        // Administradores ven todas las citas
         $citas = Cita::with(['paciente', 'doctor'])->get();
         return response()->json($citas, 200);
     }
@@ -26,7 +24,6 @@ class CitasController extends Controller
     public function show($id) {
         $user = Auth::user();
 
-        // Solo administradores pueden ver citas individuales
         if ($user->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
@@ -50,7 +47,6 @@ class CitasController extends Controller
 
         $user = Auth::user();
 
-        // Administradores, pacientes y doctores pueden crear citas
         if (!in_array($user->role, ['admin', 'paciente', 'doctor'])) {
             \Log::warning('CitasController@store - Unauthorized access', [
                 'user_id' => $user->id,
@@ -60,7 +56,6 @@ class CitasController extends Controller
         }
 
         if ($user->role === 'admin') {
-            // Los administradores pueden crear citas especificando paciente y doctor
             $validate = Validator::make($request->all(), [
                 'pacientes_id' => 'required|exists:pacientes,id',
                 'doctor_id'    => 'required|exists:doctores,id',
@@ -79,7 +74,6 @@ class CitasController extends Controller
             $pacientes_id = $request->pacientes_id;
             $doctor_id = $request->doctor_id;
         } elseif ($user->role === 'paciente') {
-            // Los pacientes solo pueden agendar citas para sí mismos
             $validate = Validator::make($request->all(), [
                 'doctor_id'    => 'required|exists:doctores,id',
                 'fecha'        => 'required|date',
@@ -94,7 +88,6 @@ class CitasController extends Controller
                 return response()->json($validate->errors(), 400);
             }
 
-            // Obtener el paciente correspondiente al usuario autenticado
             $paciente = \App\Models\Paciente::where('user_id', $user->id)->first();
             if (!$paciente) {
                 \Log::error('CitasController@store - Paciente not found for user', [
@@ -106,7 +99,6 @@ class CitasController extends Controller
             $pacientes_id = $paciente->id;
             $doctor_id = $request->doctor_id;
         } elseif ($user->role === 'doctor') {
-            // Los doctores pueden agendar citas para sus pacientes
             $validate = Validator::make($request->all(), [
                 'pacientes_id' => 'required|exists:pacientes,id',
                 'fecha'        => 'required|date',
@@ -121,7 +113,6 @@ class CitasController extends Controller
                 return response()->json($validate->errors(), 400);
             }
 
-            // Obtener el doctor correspondiente al usuario autenticado
             $doctor = \App\Models\Doctor::where('user_id', $user->id)->first();
             if (!$doctor) {
                 \Log::error('CitasController@store - Doctor not found for user', [
@@ -133,7 +124,6 @@ class CitasController extends Controller
             $pacientes_id = $request->pacientes_id;
             $doctor_id = $doctor->id;
 
-            // Verificar que la hora esté dentro del horario laboral del doctor
             if ($doctor->start_time && $doctor->end_time) {
                 $appointmentTime = strtotime($request->hora);
                 $startTime = strtotime($doctor->start_time);
@@ -170,7 +160,6 @@ class CitasController extends Controller
             'hora' => $request->hora
         ]);
 
-        // Verificar que el doctor existe y obtener su horario
         $doctor = Doctor::find($doctor_id);
         \Log::info('CitasController@store - Doctor lookup', [
             'doctor_id' => $doctor_id,
@@ -185,11 +174,10 @@ class CitasController extends Controller
             return response()->json(['error' => 'Doctor not found'], 404);
         }
 
-        // Verificar que el slot esté disponible (fecha + hora)
         $existingCita = Cita::where('doctor_id', $doctor_id)
-                             ->where('fecha', $request->fecha)
-                             ->where('hora', $request->hora)
-                             ->first();
+                              ->where('fecha', $request->fecha)
+                              ->where('hora', $request->hora)
+                              ->first();
 
         \Log::info('CitasController@store - Slot availability check', [
             'doctor_id' => $doctor_id,
@@ -212,7 +200,6 @@ class CitasController extends Controller
             return response()->json(['message' => 'Este horario ya está ocupado'], 409);
         }
 
-        // Validar que la hora esté dentro del horario laboral del doctor
         if ($doctor->start_time && $doctor->end_time) {
             $appointmentTime = strtotime($request->hora);
             $startTime = strtotime($doctor->start_time);
@@ -245,11 +232,10 @@ class CitasController extends Controller
         $citaData['pacientes_id'] = $pacientes_id;
         $citaData['doctor_id'] = $doctor_id;
 
-        // Asignar status según el rol del usuario
         if ($user->role === 'paciente') {
             $citaData['status'] = 'pendiente_por_aprobador';
         } elseif ($user->role === 'doctor') {
-            $citaData['status'] = 'aprobada'; // Doctor agenda directamente, ya está aprobado
+            $citaData['status'] = 'aprobada';
         }
 
         \Log::info('CitasController@store - Creating appointment', [
@@ -275,7 +261,6 @@ class CitasController extends Controller
         }
 
         if ($user->role === 'admin') {
-            // Administradores pueden actualizar cualquier campo
             $validate = Validator::make($request->all(), [
                 'pacientes_id' => 'sometimes|exists:pacientes,id',
                 'doctor_id'    => 'sometimes|exists:doctores,id',
@@ -290,7 +275,6 @@ class CitasController extends Controller
 
             $cita->update($request->all());
         } elseif ($user->role === 'doctor') {
-            // Doctores solo pueden actualizar el status de sus propias citas
             $doctor = \App\Models\Doctor::where('user_id', $user->id)->first();
             if (!$doctor || $cita->doctor_id !== $doctor->id) {
                 return response()->json(['error' => 'Unauthorized'], 403);
@@ -304,16 +288,12 @@ class CitasController extends Controller
                 return response()->json($validate->errors(), 400);
             }
 
-            // Validar transiciones de estado permitidas para doctores
             $currentStatus = $cita->status;
             $newStatus = $request->status;
 
             $allowedTransitions = [
                 'pendiente_por_aprobador' => ['aprobada', 'no_aprobado'],
                 'aprobada' => ['completada', 'no_asistio'],
-                // Estados finales - no permiten cambios
-                // 'completada' => [], // No se puede cambiar una vez completada
-                // 'no_asistio' => [], // No se puede cambiar una vez marcada como no asistió
             ];
 
             if (!isset($allowedTransitions[$currentStatus]) || !in_array($newStatus, $allowedTransitions[$currentStatus])) {
@@ -332,7 +312,6 @@ class CitasController extends Controller
     public function destroy($id) {
         $user = Auth::user();
 
-        // Solo administradores pueden eliminar citas
         if ($user->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
@@ -351,7 +330,6 @@ class CitasController extends Controller
     {
         $user = Auth::user();
 
-        // Solo administradores pueden ver citas completas
         if ($user->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
@@ -376,7 +354,6 @@ class CitasController extends Controller
 
         $user = Auth::user();
 
-        // Administradores y pacientes pueden ver slots disponibles
         if (!in_array($user->role, ['admin', 'paciente'])) {
             \Log::warning('CitasController@getAvailableSlots - Unauthorized access', [
                 'user_id' => $user->id,
@@ -412,7 +389,6 @@ class CitasController extends Controller
             return response()->json(['message' => 'Doctor not found'], 404);
         }
 
-        // Si el doctor no tiene horario configurado, devolver array vacío
         if (!$doctor->start_time || !$doctor->end_time) {
             \Log::info('CitasController@getAvailableSlots - Doctor has no schedule configured', [
                 'doctor_id' => $doctor->id,
@@ -422,7 +398,6 @@ class CitasController extends Controller
             return response()->json(['slots' => []], 200);
         }
 
-        // Generar slots de 30 minutos dentro del horario laboral
         $slots = [];
         $startTime = strtotime($doctor->start_time);
         $endTime = strtotime($doctor->end_time);
@@ -437,10 +412,9 @@ class CitasController extends Controller
         $slotCount = 0;
         while ($currentTime < $endTime) {
             $slotStart = date('H:i', $currentTime);
-            $currentTime += 30 * 60; // Agregar 30 minutos
+            $currentTime += 30 * 60;
             $slotEnd = date('H:i', $currentTime);
 
-            // Solo agregar si no excede el horario de fin
             if ($currentTime <= $endTime) {
                 $slots[] = [
                     'hora' => $slotStart,
@@ -457,7 +431,6 @@ class CitasController extends Controller
             'slots' => $slots
         ]);
 
-        // Obtener citas existentes para esta fecha y doctor
         $existingAppointments = Cita::where('doctor_id', $request->doctor_id)
                                     ->where('fecha', $request->fecha)
                                     ->pluck('hora')
@@ -469,7 +442,6 @@ class CitasController extends Controller
             'existing_appointments' => $existingAppointments
         ]);
 
-        // Marcar slots ocupados
         $occupiedCount = 0;
         foreach ($slots as &$slot) {
             if (in_array($slot['hora'], $existingAppointments)) {
@@ -483,7 +455,6 @@ class CitasController extends Controller
             'total_slots_after_filtering' => count($slots)
         ]);
 
-        // Filtrar solo slots disponibles
         $availableSlots = array_filter($slots, function($slot) {
             return $slot['disponible'];
         });
@@ -504,13 +475,11 @@ class CitasController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        // Obtener el paciente correspondiente al usuario autenticado
         $paciente = \App\Models\Paciente::where('user_id', $user->id)->first();
         if (!$paciente) {
             return response()->json(['error' => 'Paciente profile not found'], 404);
         }
 
-        // Obtener citas del paciente con información del doctor
         $citas = Cita::where('pacientes_id', $paciente->id)
                     ->with(['doctor', 'paciente'])
                     ->orderBy('fecha', 'desc')
@@ -527,13 +496,11 @@ class CitasController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        // Obtener el doctor correspondiente al usuario autenticado
         $doctor = \App\Models\Doctor::where('user_id', $user->id)->first();
         if (!$doctor) {
             return response()->json(['error' => 'Doctor profile not found'], 404);
         }
 
-        // Obtener citas del doctor con información del paciente
         $citas = Cita::where('doctor_id', $doctor->id)
                     ->with(['doctor', 'paciente'])
                     ->orderBy('fecha', 'desc')

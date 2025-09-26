@@ -11,7 +11,6 @@ const AdminDoctoresListScreen = ({ navigation }) => {
     fetchDoctores();
   }, []);
 
-  // Refresh data when screen comes into focus (e.g., returning from create screen)
   useFocusEffect(
     React.useCallback(() => {
       fetchDoctores();

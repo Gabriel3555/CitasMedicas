@@ -11,7 +11,6 @@ const AdminAdminsListScreen = ({ navigation }) => {
     fetchAdmins();
   }, []);
 
-  // Refresh data when screen comes into focus (e.g., returning from create screen)
   useFocusEffect(
     React.useCallback(() => {
       fetchAdmins();
@@ -22,7 +21,6 @@ const AdminAdminsListScreen = ({ navigation }) => {
     setLoading(true);
     const result = await getUsers();
     if (result.success) {
-      // Filter only admin users
       const adminUsers = result.data.filter(user => user.role === 'admin');
       setAdmins(adminUsers);
     } else {

@@ -8,8 +8,7 @@ import { getDoctores } from '../../apis/doctoresApi';
 
 const AdminCitaUpdateScreen = ({ navigation, route }) => {
   const { cita } = route.params;
-  
-  // Función auxiliar para formatear fechas
+
   const formatDate = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -35,7 +34,6 @@ const AdminCitaUpdateScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     fetchData();
-    // Cargar slots disponibles si ya hay doctor y fecha seleccionados
     if (formData.doctor_id && formData.fecha) {
       loadAvailableSlots(formData.doctor_id, formData.fecha);
     }
@@ -63,19 +61,17 @@ const AdminCitaUpdateScreen = ({ navigation, route }) => {
     if (result.success) {
       let slots = result.data.slots || [];
 
-      // Si estamos editando la misma cita, incluir la hora actual como disponible
       if (cita.doctor_id.toString() === doctorId && cita.fecha === date) {
         const currentSlot = {
           hora: cita.hora,
-          hora_fin: cita.hora, // Simplificado
+          hora_fin: cita.hora,
           label: `${cita.hora} (Hora actual)`,
           disponible: true
         };
 
-        // Verificar si la hora actual ya está en los slots disponibles
         const existingSlot = slots.find(slot => slot.hora === cita.hora);
         if (!existingSlot) {
-          slots.unshift(currentSlot); // Agregar al inicio
+          slots.unshift(currentSlot);
         }
       }
 
@@ -101,8 +97,7 @@ const AdminCitaUpdateScreen = ({ navigation, route }) => {
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
-    
-    // Si cambia el doctor, limpiar hora y recargar slots
+
     if (field === 'doctor_id') {
       setFormData(prev => ({ ...prev, [field]: value, hora: '' }));
       if (formData.fecha && value) {
@@ -119,8 +114,7 @@ const AdminCitaUpdateScreen = ({ navigation, route }) => {
       const formattedDate = formatDate(date);
       setSelectedDate(date);
       setFormData({ ...formData, fecha: formattedDate, hora: '' });
-      
-      // Cargar slots disponibles si hay doctor seleccionado
+
       if (formData.doctor_id) {
         loadAvailableSlots(formData.doctor_id, formattedDate);
       } else {
@@ -274,7 +268,7 @@ const AdminCitaUpdateScreen = ({ navigation, route }) => {
           display={Platform.OS === 'android' ? 'default' : 'spinner'}
           onChange={handleDateChange}
           minimumDate={new Date()}
-          maximumDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)} // Máximo 1 año en el futuro
+          maximumDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)}
         />
       )}
     </ScrollView>

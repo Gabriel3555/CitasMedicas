@@ -26,7 +26,6 @@ export const register = async (name, email, password, password_confirmation, rol
       if (typeof errorData === 'string') {
         errorMessage = errorData;
       } else if (errorData.errors) {
-        // Handle validation errors object
         if (typeof errorData.errors === 'object') {
           const errorMessages = [];
           for (const field in errorData.errors) {
@@ -45,12 +44,10 @@ export const register = async (name, email, password, password_confirmation, rol
       } else if (errorData.message) {
         errorMessage = errorData.message;
       } else if (errorData.email && Array.isArray(errorData.email)) {
-        // Specific handling for email validation errors
         errorMessage = errorData.email.join('\n');
       }
     }
 
-    // Fallback for network errors or unexpected formats
     if (!errorMessage || errorMessage === 'Error en registro') {
       if (error.message) {
         errorMessage = `Error de conexión: ${error.message}`;

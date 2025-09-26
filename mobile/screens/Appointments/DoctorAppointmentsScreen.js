@@ -33,7 +33,7 @@ const DoctorAppointmentsScreen = ({ navigation }) => {
             const result = await updateCitaStatus(citaId, newStatus);
             if (result.success) {
               Alert.alert('Éxito', `Cita ${statusLabel.toLowerCase()} exitosamente`);
-              fetchCitas(); // Refresh the list
+              fetchCitas();
             } else {
               Alert.alert('Error', result.error);
             }
@@ -119,7 +119,6 @@ const DoctorAppointmentsScreen = ({ navigation }) => {
         </TouchableOpacity>
       );
     }
-    // Estados finales 'completada' y 'no_asistio' no muestran botones de cambio
 
     return buttons;
   };

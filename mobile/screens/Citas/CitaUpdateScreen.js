@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { updateCita } from "../../apis/citasApi";
 
 const CitaUpdateScreen = ({ route, navigation }) => {
   const { cita } = route.params;
@@ -8,10 +9,30 @@ const CitaUpdateScreen = ({ route, navigation }) => {
   const [fecha, setFecha] = useState(cita.fecha);
   const [hora, setHora] = useState(cita.hora);
   const [estado, setEstado] = useState(cita.estado);
+  const [loading, setLoading] = useState(false);
 
-  const handleUpdate = () => {
-    alert(`Cita actualizada: ${paciente} con ${doctor} (solo UI)`);
-    navigation.goBack();
+  const handleUpdate = async () => {
+    setLoading(true);
+    try {
+      const result = await updateCita(cita.id, {
+        paciente,
+        doctor,
+        fecha,
+        hora,
+        estado
+      });
+      if (result.success) {
+        Alert.alert('Éxito', 'Cita actualizada correctamente', [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]);
+      } else {
+        Alert.alert('Error', result.error);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error inesperado al actualizar la cita');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -24,8 +45,14 @@ const CitaUpdateScreen = ({ route, navigation }) => {
       <TextInput style={styles.input} value={hora} onChangeText={setHora} />
       <TextInput style={styles.input} value={estado} onChangeText={setEstado} />
 
-      <TouchableOpacity style={styles.button} onPress={handleUpdate}>
-        <Text style={styles.buttonText}>Guardar Cambios</Text>
+      <TouchableOpacity
+        style={[styles.button, loading && styles.buttonDisabled]}
+        onPress={handleUpdate}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? 'Guardando...' : 'Guardar Cambios'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -36,6 +63,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: "bold", marginBottom: 15 },
   input: { borderWidth: 1, borderColor: "#ccc", padding: 12, marginBottom: 15, borderRadius: 8 },
   button: { backgroundColor: "#007AFF", padding: 15, borderRadius: 8 },
+  buttonDisabled: { backgroundColor: "#ccc" },
   buttonText: { color: "white", textAlign: "center", fontWeight: "bold" },
 });
 

@@ -13,10 +13,8 @@ const SplashScreen = ({ navigation }) => {
     try {
       const token = await AsyncStorage.getItem('token');
       if (token) {
-        // Verificar si el token es válido
         const result = await me();
         if (result.success) {
-          // Redirigir según el rol del usuario
           const userRole = result.data.role;
           if (userRole === 'admin') {
             navigation.replace('AdminDashboard');
@@ -25,15 +23,12 @@ const SplashScreen = ({ navigation }) => {
           } else if (userRole === 'paciente') {
             navigation.replace('PacienteDashboard');
           } else {
-            // Rol desconocido, ir al login
             navigation.replace('Login');
           }
         } else {
-          // Token inválido, ir al login
           navigation.replace('Login');
         }
       } else {
-        // No hay token, ir al login
         navigation.replace('Login');
       }
     } catch (error) {

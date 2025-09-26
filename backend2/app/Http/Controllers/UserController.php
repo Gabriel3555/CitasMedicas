@@ -47,8 +47,6 @@ class UserController extends Controller
             'role' => $request->role,
         ]);
 
-        // Los administradores no necesitan perfiles adicionales
-
         return response()->json($user, 201);
     }
 
@@ -78,8 +76,6 @@ class UserController extends Controller
 
         $user->update($updateData);
 
-        // Los administradores no necesitan perfiles adicionales
-
         return response()->json($user, 200);
     }
 
@@ -90,7 +86,6 @@ class UserController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        // No permitir que un admin se elimine a sí mismo
         if ($user->id === Auth::id()) {
             return response()->json(['message' => 'No puedes eliminar tu propio usuario'], 403);
         }

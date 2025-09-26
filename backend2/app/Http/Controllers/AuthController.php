@@ -180,7 +180,6 @@ class AuthController extends Controller
             }
         }
 
-        // Actualizar teléfono para pacientes y doctores
         if ($request->has('telefono')) {
             if ($user->role === 'paciente') {
                 $paciente = Paciente::where('user_id', $user->id)->first();

@@ -15,7 +15,6 @@ class DoctoresController extends Controller
     public function index(Request $request) {
         $query = Doctor::with(['eps', 'especialidad']);
 
-        // Filter by specialty if provided
         if ($request->has('especialidad_id') && $request->especialidad_id) {
             $query->where('especialidad_id', $request->especialidad_id);
         }
@@ -63,8 +62,7 @@ class DoctoresController extends Controller
         \Log::info('DoctoresController@store - Validation passed, creating user and doctor');
 
         try {
-            // Create user account first
-            $defaultPassword = 'password123'; // Default password for doctors
+            $defaultPassword = 'password123';
             $user = User::create([
                 'name' => $request->nombre,
                 'email' => $request->email,
@@ -77,7 +75,6 @@ class DoctoresController extends Controller
                 'user_email' => $user->email
             ]);
 
-            // Create doctor linked to the user
             $doctorData = $request->all();
             $doctorData['user_id'] = $user->id;
 
@@ -89,7 +86,6 @@ class DoctoresController extends Controller
                 'doctor_data' => $doctor->toArray()
             ]);
 
-            // Return doctor with user info
             $doctor->load(['eps', 'especialidad']);
             return response()->json([
                 'doctor' => $doctor,
@@ -121,7 +117,6 @@ class DoctoresController extends Controller
             'user_agent' => $request->userAgent()
         ]);
 
-        // Validación condicional: solo validar campos que se están actualizando
         $rules = [];
 
         if ($request->has('nombre')) {
@@ -233,7 +228,6 @@ class DoctoresController extends Controller
             return response()->json(['error' => 'Unauthorized - User is not a doctor'], 403);
         }
 
-        // Obtener el doctor correspondiente al usuario autenticado
         $doctor = Doctor::where('user_id', $user->id)->first();
         if (!$doctor) {
             \Log::error('Doctor profile not found for user', ['user_id' => $user->id]);
@@ -251,7 +245,6 @@ class DoctoresController extends Controller
             return response()->json($validate->errors(), 400);
         }
 
-        // Validar formato de hora
         $startTime = $request->start_time;
         $endTime = $request->end_time;
 
@@ -260,7 +253,6 @@ class DoctoresController extends Controller
             return response()->json(['error' => 'Formato de hora inválido. Use el formato HH:MM'], 400);
         }
 
-        // Validar que la hora de inicio sea anterior a la hora de fin
         $start = strtotime($startTime);
         $end = strtotime($endTime);
 

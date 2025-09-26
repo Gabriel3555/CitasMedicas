@@ -26,19 +26,16 @@ class Doctor extends Model
         return $this->hasMany(Cita::class, 'doctor_id');
     }
 
-    // Un doctor pertenece a una EPS
     public function eps()
     {
         return $this->belongsTo(EPS::class, 'eps_id');
     }
 
-    // Un doctor pertenece a una especialidad
     public function especialidad()
     {
         return $this->belongsTo(Especialidad::class, 'especialidad_id');
     }
 
-    // Un doctor pertenece a un usuario
     public function user()
     {
         return $this->belongsTo(User::class);
