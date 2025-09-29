@@ -10,6 +10,7 @@ export const getCitas = async () => {
 };
 
 export const createCita = async (citaData) => {
+  // Crear una nueva cita médica
   try {
     const response = await api.post('/citas', citaData);
     return { success: true, data: response.data };
@@ -92,6 +93,7 @@ export const getPacientes = async () => {
 };
 
 export const getAvailableSlots = async (doctorId, fecha) => {
+  // Obtener los horarios disponibles para un doctor en una fecha específica
   try {
     const response = await api.get('/citas/available-slots', {
       params: { doctor_id: doctorId, fecha: fecha }

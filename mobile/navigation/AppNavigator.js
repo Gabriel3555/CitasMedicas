@@ -7,7 +7,6 @@ import SplashScreen from "../screens/Auth/SplashScreen";
 import LoginScreen from "../screens/Auth/LoginScreen";
 import RegisterScreen from "../screens/Auth/RegisterScreen";
 import LogoutScreen from "../screens/Auth/LogoutScreen";
-import HomeScreen from "../screens/Auth/HomeScreen";
 
 import AdminDashboard from "../screens/Dashboard/AdminDashboard";
 import PacienteDashboard from "../screens/Dashboard/PacienteDashboard";
@@ -54,6 +53,7 @@ import AdminAdminUpdateScreen from "../screens/Admin/AdminAdminUpdateScreen";
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Navegación por pestañas para administradores
 const MainTabs = () => {
   return (
     <Tab.Navigator>
@@ -66,7 +66,8 @@ const MainTabs = () => {
   );
 };
 
-const AppNavigator = () => {
+const AppNavigator =  () => {
+  // Configuración principal de navegación de la aplicación
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Splash">

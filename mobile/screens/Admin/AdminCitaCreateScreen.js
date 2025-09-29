@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform, Modal } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { createCita, getAvailableSlots } from '../../apis/citasApi';
@@ -9,6 +9,7 @@ import { getEspecialidades } from '../../apis/especialidadesApi';
 
 const AdminCitaCreateScreen = ({ navigation }) => {
   const formatDate = (date) => {
+    // Convertir fecha de JavaScript a formato YYYY-MM-DD para la API
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -25,6 +26,7 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   const [doctores, setDoctores] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
   const [selectedEspecialidad, setSelectedEspecialidad] = useState(null);
+  const [selectedEspecialidadId, setSelectedEspecialidadId] = useState('');
   const [availableSlots, setAvailableSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingPacientes, setLoadingPacientes] = useState(true);
@@ -33,56 +35,93 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showSpecialtyModal, setShowSpecialtyModal] = useState(false);
 
   useEffect(() => {
-    if (!formData.doctor_id || !formData.fecha) {
+    try {
+      if (!formData || !formData.doctor_id || !formData.fecha) {
+        setAvailableSlots([]);
+      }
+    } catch (error) {
+      console.error('Error in useEffect:', error);
       setAvailableSlots([]);
     }
-  }, [formData.doctor_id, formData.fecha]);
+  }, [formData && formData.doctor_id, formData && formData.fecha]);
 
   useEffect(() => {
-    fetchData();
+    try {
+      fetchData();
+    } catch (error) {
+      console.error('Error in main useEffect:', error);
+    }
   }, []);
 
   const fetchData = async () => {
-    setLoadingPacientes(true);
-    const pacientesResult = await getPacientes();
-    if (pacientesResult.success) {
-      setPacientes(pacientesResult.data);
-    } else {
-      Alert.alert('Error', 'No se pudieron cargar los pacientes');
-    }
-    setLoadingPacientes(false);
+    try {
+      setLoadingPacientes(true);
+      try {
+        const pacientesResult = await getPacientes();
+        if (pacientesResult && pacientesResult.success) {
+          setPacientes(pacientesResult.data || []);
+        } else {
+          Alert.alert('Error', 'No se pudieron cargar los pacientes');
+        }
+      } catch (error) {
+        console.error('Error fetching pacientes:', error);
+      } finally {
+        setLoadingPacientes(false);
+      }
 
-    setLoadingEspecialidades(true);
-    const especialidadesResult = await getEspecialidades();
-    if (especialidadesResult.success) {
-      setEspecialidades(especialidadesResult.data);
-    } else {
-      Alert.alert('Error', 'No se pudieron cargar las especialidades');
-    }
-    setLoadingEspecialidades(false);
+      setLoadingEspecialidades(true);
+      try {
+        const especialidadesResult = await getEspecialidades();
+        if (especialidadesResult && especialidadesResult.success) {
+          setEspecialidades(especialidadesResult.data || []);
+        } else {
+          Alert.alert('Error', 'No se pudieron cargar las especialidades');
+        }
+      } catch (error) {
+        console.error('Error fetching especialidades:', error);
+      } finally {
+        setLoadingEspecialidades(false);
+      }
 
-    await fetchDoctores();
+      await fetchDoctores();
+    } catch (error) {
+      console.error('Error in fetchData:', error);
+      setLoadingPacientes(false);
+      setLoadingEspecialidades(false);
+    }
   };
 
   const fetchDoctores = async (especialidadId = null) => {
-    setLoadingDoctores(true);
-    const doctoresResult = await getDoctores(especialidadId);
-    if (doctoresResult.success) {
-      setDoctores(doctoresResult.data);
-      if (formData.doctor_id && !doctoresResult.data.find(d => d.id.toString() === formData.doctor_id)) {
-        setFormData({ ...formData, doctor_id: '', hora: '' });
-        setAvailableSlots([]);
+    try {
+      setLoadingDoctores(true);
+      const doctoresResult = await getDoctores(especialidadId);
+      if (doctoresResult && doctoresResult.success) {
+        setDoctores(doctoresResult.data || []);
+        if (formData && formData.doctor_id && doctoresResult.data && !doctoresResult.data.find(d => d && d.id && d.id.toString() === formData.doctor_id)) {
+          setFormData(prevData => ({ ...prevData, doctor_id: '', hora: '' }));
+          setAvailableSlots([]);
+        }
+      } else {
+        setDoctores([]);
+        Alert.alert('Error', 'No se pudieron cargar los doctores');
       }
-    } else {
-      Alert.alert('Error', 'No se pudieron cargar los doctores');
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      setDoctores([]);
+    } finally {
+      setLoadingDoctores(false);
     }
-    setLoadingDoctores(false);
   };
 
   const handleInputChange = (field, value) => {
-    setFormData({ ...formData, [field]: value });
+    try {
+      setFormData(prevData => ({ ...prevData, [field]: value }));
+    } catch (error) {
+      console.error('Error updating form data:', error);
+    }
   };
 
   const handleDateConfirm = (date) => {
@@ -96,43 +135,55 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   };
 
   const handleDateChange = (event, date) => {
-    setShowDatePicker(false);
-    if (date) {
-      setSelectedDate(date);
-      handleInputChange('fecha', formatDate(date));
-      handleInputChange('hora', '');
-      if (formData.doctor_id) {
-        loadAvailableSlots(formData.doctor_id, formatDate(date));
-      } else {
-        setAvailableSlots([]);
+    try {
+      setShowDatePicker(false);
+      if (date) {
+        setSelectedDate(date);
+        handleInputChange('fecha', formatDate(date));
+        handleInputChange('hora', '');
+        if (formData && formData.doctor_id) {
+          loadAvailableSlots(formData.doctor_id, formatDate(date));
+        } else {
+          setAvailableSlots([]);
+        }
       }
+    } catch (error) {
+      console.error('Error in handleDateChange:', error);
+      setShowDatePicker(false);
     }
   };
 
   const loadAvailableSlots = async (doctorId, date) => {
-    if (!doctorId || !date) {
+    // Cargar los horarios disponibles para un doctor en una fecha específica
+    // El backend genera automáticamente slots de 30 minutos dentro del horario laboral
+    // y excluye los que ya están ocupados por otras citas
+    try {
+      if (!doctorId || !date) {
+        setAvailableSlots([]);
+        return;
+      }
+
+      if (isNaN(parseInt(doctorId))) {
+        setAvailableSlots([]);
+        return;
+      }
+
+      setLoadingSlots(true);
+
+      const result = await getAvailableSlots(doctorId, date);
+      if (result && result.success) {
+        const slots = result.data && result.data.slots ? result.data.slots : [];
+        setAvailableSlots(slots);
+      } else {
+        setAvailableSlots([]);
+        Alert.alert('Error', 'No se pudieron cargar los horarios disponibles');
+      }
+    } catch (error) {
+      console.error('Error loading slots:', error);
       setAvailableSlots([]);
-      return;
+    } finally {
+      setLoadingSlots(false);
     }
-
-    if (isNaN(parseInt(doctorId))) {
-      setAvailableSlots([]);
-      return;
-    }
-
-    setLoadingSlots(true);
-
-    const result = await getAvailableSlots(doctorId, date);
-
-    if (result.success) {
-      const slots = result.data.slots || [];
-      setAvailableSlots(slots);
-    } else {
-      setAvailableSlots([]);
-      Alert.alert('Error', 'No se pudieron cargar los horarios disponibles');
-    }
-
-    setLoadingSlots(false);
   };
 
   const validateDate = (date) => {
@@ -148,26 +199,32 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.pacientes_id || !formData.doctor_id || !formData.fecha || !formData.hora) {
-      Alert.alert('Error', 'Todos los campos son obligatorios');
-      return;
-    }
+    // Validar y enviar la nueva cita
+    try {
+      if (!formData || !formData.pacientes_id || !formData.doctor_id || !formData.fecha || !formData.hora) {
+        Alert.alert('Error', 'Todos los campos son obligatorios');
+        return;
+      }
 
-    if (!validateDate(formData.fecha)) {
-      Alert.alert('Error', 'La fecha debe estar en formato YYYY-MM-DD y no puede ser anterior a hoy');
-      return;
-    }
+      if (!validateDate(formData.fecha)) {
+        Alert.alert('Error', 'La fecha debe estar en formato YYYY-MM-DD y no puede ser anterior a hoy');
+        return;
+      }
 
-    setLoading(true);
-    const result = await createCita(formData);
-
-    setLoading(false);
-    if (result.success) {
-      Alert.alert('Éxito', 'Cita creada correctamente', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
-    } else {
-      Alert.alert('Error', result.error);
+      setLoading(true);
+      const result = await createCita(formData);
+      if (result && result.success) {
+        Alert.alert('Éxito', 'Cita creada correctamente', [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]);
+      } else {
+        Alert.alert('Error', (result && result.error) || 'Error al crear la cita');
+      }
+    } catch (error) {
+      console.error('Error creating cita:', error);
+      Alert.alert('Error', 'Error al crear la cita');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -192,7 +249,7 @@ const AdminCitaCreateScreen = ({ navigation }) => {
                 style={styles.picker}
               >
                 <Picker.Item label="🔍 Selecciona un paciente..." value="" />
-                {pacientes.map((paciente) => (
+                {pacientes && pacientes.map((paciente) => (
                   <Picker.Item
                     key={paciente.id}
                     label={`${paciente.nombre} - ${paciente.email || 'Sin email'} (${paciente.eps?.nombre || 'Sin EPS'})`}
@@ -213,26 +270,14 @@ const AdminCitaCreateScreen = ({ navigation }) => {
               <Text style={styles.loadingText}>Cargando especialidades...</Text>
             </View>
           ) : (
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedEspecialidad?.id || ''}
-                onValueChange={(itemValue) => {
-                  const especialidad = especialidades.find(e => e.id === itemValue);
-                  setSelectedEspecialidad(especialidad);
-                  fetchDoctores(itemValue || null);
-                }}
-                style={styles.picker}
-              >
-                <Picker.Item label="🏥 Todas las especialidades..." value="" />
-                {especialidades.map(especialidad => (
-                  <Picker.Item
-                    key={especialidad.id}
-                    label={especialidad.nombre}
-                    value={especialidad.id}
-                  />
-                ))}
-              </Picker>
-            </View>
+            <TouchableOpacity
+              style={styles.pickerContainer}
+              onPress={() => setShowSpecialtyModal(true)}
+            >
+              <Text style={styles.pickerText}>
+                {selectedEspecialidad ? `🏥 ${selectedEspecialidad.nombre}` : '🏥 Todas las especialidades...'}
+              </Text>
+            </TouchableOpacity>
           )}
 
           <Text style={styles.label}>Seleccionar Doctor:</Text>
@@ -245,18 +290,22 @@ const AdminCitaCreateScreen = ({ navigation }) => {
               <Picker
                 selectedValue={formData.doctor_id}
                 onValueChange={(value) => {
-                  const newFormData = { ...formData, doctor_id: value, hora: '' };
-                  setFormData(newFormData);
-                  if (formData.fecha && value) {
-                    loadAvailableSlots(value, formData.fecha);
-                  } else {
-                    setAvailableSlots([]);
+                  try {
+                    const newFormData = { ...formData, doctor_id: value, hora: '' };
+                    setFormData(newFormData);
+                    if (formData && formData.fecha && value) {
+                      loadAvailableSlots(value, formData.fecha);
+                    } else {
+                      setAvailableSlots([]);
+                    }
+                  } catch (error) {
+                    console.error('Error in doctor selection:', error);
                   }
                 }}
                 style={styles.picker}
               >
                 <Picker.Item label="🔍 Selecciona un doctor..." value="" />
-                {doctores.map((doctor) => (
+                {doctores && doctores.map((doctor) => (
                   <Picker.Item
                     key={doctor.id}
                     label={`Dr. ${doctor.nombre} - ${doctor.email || 'Sin email'} (${doctor.especialidad?.nombre || 'Sin especialidad'})`}
@@ -294,17 +343,15 @@ const AdminCitaCreateScreen = ({ navigation }) => {
                 <View style={styles.pickerContainer}>
                   <Picker
                     selectedValue={formData.hora}
-                    onValueChange={(value) => {
-                      handleInputChange('hora', value);
-                    }}
+                    onValueChange={(value) => handleInputChange('hora', value)}
                     style={styles.picker}
                   >
                     <Picker.Item label="🕐 Selecciona una hora..." value="" />
-                    {availableSlots.map((slot, index) => (
+                    {availableSlots && availableSlots.map((slot, index) => (
                       <Picker.Item
                         key={index}
-                        label={slot.label}
-                        value={slot.hora}
+                        label={slot.label || 'Horario no disponible'}
+                        value={slot.hora || ''}
                       />
                     ))}
                   </Picker>
@@ -324,7 +371,8 @@ const AdminCitaCreateScreen = ({ navigation }) => {
           <View style={styles.infoContainer}>
             <Text style={styles.infoText}>💡 La fecha debe ser igual o posterior a hoy</Text>
             <Text style={styles.infoText}>💡 Las citas tienen una duración de 30 minutos</Text>
-            <Text style={styles.infoText}>💡 Los horarios disponibles se generan según el horario laboral del doctor</Text>
+            <Text style={styles.infoText}>💡 Los horarios disponibles se generan automáticamente en intervalos de 30 minutos</Text>
+            <Text style={styles.infoText}>💡 Se excluyen automáticamente los horarios ya ocupados</Text>
           </View>
         </View>
 
@@ -343,12 +391,58 @@ const AdminCitaCreateScreen = ({ navigation }) => {
         <DateTimePicker
           value={selectedDate}
           mode="date"
-          display={Platform.OS === 'android' ? 'default' : 'spinner'}
+          display="default"
           onChange={handleDateChange}
           minimumDate={new Date()}
           maximumDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)}
         />
       )}
+
+      <Modal
+        visible={showSpecialtyModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSpecialtyModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Seleccionar Especialidad</Text>
+            <ScrollView>
+              <TouchableOpacity
+                style={styles.modalItem}
+                onPress={() => {
+                  setSelectedEspecialidadId('');
+                  setSelectedEspecialidad(null);
+                  fetchDoctores(null);
+                  setShowSpecialtyModal(false);
+                }}
+              >
+                <Text style={styles.modalItemText}>🏥 Todas las especialidades...</Text>
+              </TouchableOpacity>
+              {especialidades && especialidades.map(especialidad => (
+                <TouchableOpacity
+                  key={especialidad.id}
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setSelectedEspecialidadId(especialidad.id.toString());
+                    setSelectedEspecialidad(especialidad);
+                    fetchDoctores(especialidad.id.toString());
+                    setShowSpecialtyModal(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{especialidad.nombre || 'Especialidad sin nombre'}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.modalClose}
+              onPress={() => setShowSpecialtyModal(false)}
+            >
+              <Text style={styles.modalCloseText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -466,6 +560,50 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
     fontWeight: "bold"
+  },
+  pickerText: {
+    fontSize: 16,
+    color: "#2c3e50",
+    paddingVertical: 15,
+    paddingHorizontal: 10
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+    maxHeight: '70%'
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center'
+  },
+  modalItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd'
+  },
+  modalItemText: {
+    fontSize: 16
+  },
+  modalClose: {
+    marginTop: 15,
+    padding: 10,
+    backgroundColor: '#3498db',
+    borderRadius: 5,
+    alignItems: 'center'
+  },
+  modalCloseText: {
+    color: 'white',
+    fontSize: 16
   },
 });
 

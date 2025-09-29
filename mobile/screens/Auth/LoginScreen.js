@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Switch } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import * as Animatable from 'react-native-animatable';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login } from '../../apis/authApi';
@@ -8,24 +8,12 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
-    loadRememberedCredentials();
+    // Login screen initialization
   }, []);
-
-  const loadRememberedCredentials = async () => {
-    try {
-      const rememberedEmail = await AsyncStorage.getItem('rememberedEmail');
-      if (rememberedEmail) {
-        setEmail(rememberedEmail);
-        setRememberMe(true);
-      }
-    } catch (error) {
-    }
-  };
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -68,12 +56,6 @@ const LoginScreen = ({ navigation }) => {
 
     if (result.success) {
       await AsyncStorage.setItem('token', result.data.token);
-
-      if (rememberMe) {
-        await AsyncStorage.setItem('rememberedEmail', email);
-      } else {
-        await AsyncStorage.removeItem('rememberedEmail');
-      }
 
       const userRole = result.data.user.role;
       if (userRole === 'paciente') {
@@ -132,15 +114,6 @@ const LoginScreen = ({ navigation }) => {
             {passwordError ? <Animatable.Text animation="shake" style={styles.errorText}>{passwordError}</Animatable.Text> : null}
           </Animatable.View>
 
-          <Animatable.View animation="fadeIn" duration={600} delay={800} style={styles.rememberContainer}>
-            <Switch
-              value={rememberMe}
-              onValueChange={setRememberMe}
-              trackColor={{ false: '#767577', true: '#007AFF' }}
-              thumbColor={rememberMe ? '#fff' : '#f4f3f4'}
-            />
-            <Text style={styles.rememberText}>Recordar mi email</Text>
-          </Animatable.View>
 
           <Animatable.View animation="pulse" duration={600} delay={1000}>
             <TouchableOpacity
@@ -228,17 +201,6 @@ const styles = StyleSheet.create({
     color: '#dc3545',
     fontSize: 14,
     marginTop: 4,
-  },
-  rememberContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  rememberText: {
-    marginLeft: 8,
-    fontSize: 16,
-    color: '#333',
   },
   button: {
     backgroundColor: '#007AFF',
