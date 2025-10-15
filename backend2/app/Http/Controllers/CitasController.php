@@ -65,6 +65,11 @@ class CitasController extends Controller
             $doctor_id = $request->doctor_id;
         } elseif ($user->role === 'paciente') {
             // Los pacientes solo pueden agendar para sí mismos
+            Log::info('Paciente intentando crear cita', [
+                'user_id' => $user->id,
+                'request_data' => $request->all()
+            ]);
+
             $validate = Validator::make($request->all(), [
                 'doctor_id'    => 'required|exists:doctores,id',
                 'fecha'        => 'required|date',
@@ -72,11 +77,22 @@ class CitasController extends Controller
             ]);
 
             if ($validate->fails()) {
+                Log::error('Validación fallida para paciente', [
+                    'user_id' => $user->id,
+                    'errors' => $validate->errors()
+                ]);
                 return response()->json($validate->errors(), 400);
             }
 
             $paciente = \App\Models\Paciente::where('user_id', $user->id)->first();
+            Log::info('Búsqueda de perfil paciente', [
+                'user_id' => $user->id,
+                'paciente_found' => $paciente ? true : false,
+                'paciente_id' => $paciente ? $paciente->id : null
+            ]);
+
             if (!$paciente) {
+                Log::error('Perfil de paciente no encontrado', ['user_id' => $user->id]);
                 return response()->json(['error' => 'Paciente profile not found'], 404);
             }
 
@@ -158,10 +174,28 @@ class CitasController extends Controller
             $citaData['status'] = 'aprobada'; // Los doctores aprueban automáticamente
         }
 
-        // Crear la cita en la base de datos
-        $cita = Cita::create($citaData);
+        Log::info('Datos de cita preparados', [
+            'user_id' => $user->id,
+            'role' => $user->role,
+            'citaData' => $citaData
+        ]);
 
-        return response()->json($cita, 201);
+        // Crear la cita en la base de datos
+        try {
+            $cita = Cita::create($citaData);
+            Log::info('Cita creada exitosamente', [
+                'cita_id' => $cita->id,
+                'user_id' => $user->id
+            ]);
+            return response()->json($cita, 201);
+        } catch (\Exception $e) {
+            Log::error('Error al crear cita', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+                'citaData' => $citaData
+            ]);
+            return response()->json(['error' => 'Error interno del servidor'], 500);
+        }
     }
 
     public function update(Request $request, $id) {

@@ -57,6 +57,11 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   };
 
   const handleSchedule = async () => {
+    console.log('Iniciando handleSchedule');
+    console.log('selectedDoctor:', selectedDoctor);
+    console.log('selectedDate:', selectedDate);
+    console.log('selectedTime:', selectedTime);
+
     if (!selectedDoctor) {
       Alert.alert('Error', 'Selecciona un doctor');
       return;
@@ -70,10 +75,14 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
 
     const hour = selectedTime.getHours();
     const minute = selectedTime.getMinutes();
-    const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`; // Agregar segundos
+
+    console.log('timeString generado:', timeString);
 
     const startTime = selectedDoctor.start_time;
     const endTime = selectedDoctor.end_time;
+
+    console.log('Horario doctor:', { startTime, endTime });
 
     if (timeString < startTime || timeString >= endTime) {
       Alert.alert('Error', `Las citas deben ser entre ${startTime} y ${endTime}`);
@@ -86,11 +95,16 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
       hora: timeString,
     };
 
+    console.log('Datos de cita a enviar:', citaData);
+
     const result = await createCita(citaData);
+    console.log('Resultado de createCita:', result);
+
     if (result.success) {
       Alert.alert('Éxito', 'Cita agendada exitosamente');
       navigation.goBack();
     } else {
+      console.log('Error en createCita:', result.error);
       Alert.alert('Error', result.error);
     }
   };
