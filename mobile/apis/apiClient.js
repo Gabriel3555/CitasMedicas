@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const API_BASE_URL = 'http://10.2.235.43:8000/api';
+export const API_BASE_URL = 'https://consuelo-unmigratory-shirlee.ngrok-free.dev/api';
 
 const getToken = async () => {
   // Obtener el token de autenticación del almacenamiento local

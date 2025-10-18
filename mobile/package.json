@@ -32,7 +32,9 @@
     "@react-navigation/native": "^7.1.17",
     "@react-navigation/stack": "^7.4.8",
     "axios": "^1.12.2",
+    "eas-cli": "^16.23.0",
     "expo": "^54.0.7",
+    "expo-dev-client": "^6.0.15",
     "expo-image-picker": "^17.0.8",
     "expo-notifications": "~0.32.12",
     "expo-status-bar": "~3.0.8",
@@ -49,5 +51,11 @@
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-web": "^0.21.1"
+  },
+  "name": "mobile",
+  "version": "1.0.0",
+  "scripts": {
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   }
 }
