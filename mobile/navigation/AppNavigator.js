@@ -7,6 +7,8 @@ import SplashScreen from "../screens/Auth/SplashScreen";
 import LoginScreen from "../screens/Auth/LoginScreen";
 import RegisterScreen from "../screens/Auth/RegisterScreen";
 import LogoutScreen from "../screens/Auth/LogoutScreen";
+import ForgotPasswordScreen from "../screens/Auth/ForgotPasswordScreen";
+import ResetPasswordScreen from "../screens/Auth/ResetPasswordScreen";
 
 import AdminDashboard from "../screens/Dashboard/AdminDashboard";
 import PacienteDashboard from "../screens/Dashboard/PacienteDashboard";
@@ -67,13 +69,25 @@ const MainTabs = () => {
 };
 
 const AppNavigator =  () => {
+  // Check for deep link data and determine initial route
+  const getInitialRoute = () => {
+    if (global.deepLinkData && global.deepLinkData.screen === 'ResetPassword') {
+      return 'ResetPassword';
+    }
+    return 'Splash';
+  };
+
   // Configuración principal de navegación de la aplicación
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Splash">
+      <Stack.Navigator initialRouteName={getInitialRoute()}>
         <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={LoginScreen} options={{ title: "Login" }} />
         <Stack.Screen name="Register" component={RegisterScreen} options={{ title: "Registro" }} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ title: "Recuperar Contraseña" }} />
+        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ title: "Nueva Contraseña" }}
+          initialParams={global.deepLinkData && global.deepLinkData.screen === 'ResetPassword' ? global.deepLinkData.params : undefined}
+        />
         <Stack.Screen name="Logout" component={LogoutScreen} options={{ title: "Logout" }} />
 
         <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Mi Perfil" }} />

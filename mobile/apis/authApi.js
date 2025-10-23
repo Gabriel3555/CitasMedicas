@@ -188,3 +188,32 @@ export const uploadProfilePhoto = async (photoUri) => {
     };
   }
 };
+
+export const forgotPassword = async (email) => {
+  try {
+    const response = await api.post('/forgot-password', { email });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || 'Error al enviar correo de recuperación'
+    };
+  }
+};
+
+export const resetPassword = async (email, token, password, passwordConfirmation) => {
+  try {
+    const response = await api.post('/reset-password', {
+      email,
+      token,
+      password,
+      password_confirmation: passwordConfirmation,
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || 'Error al restablecer contraseña'
+    };
+  }
+};

@@ -33,6 +33,7 @@
       ],
       "package": "com.barrantes33.mobile"
     },
+    "scheme": "citasmedicas",
     "plugins": [
       [
         "expo-image-picker",

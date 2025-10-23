@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class CorsMiddleware
@@ -19,25 +20,33 @@ class CorsMiddleware
      */
     public function handle(Request $request, Closure $next): mixed
     {
-        $response = $next($request);
+    // Skip CORS completely for web routes (non-API routes)
+    if (!$request->is('api/*')) {
+        return $next($request);
+    }
 
-        // Get CORS configuration
-        $corsConfig = Config::get('cors');
+    // Handle preflight OPTIONS requests
+    if ($request->isMethod('OPTIONS')) {
+        return response('', 200)
+            ->header('Access-Control-Allow-Origin', $this->getAllowedOrigins($request))
+            ->header('Access-Control-Allow-Methods', $this->getAllowedMethods())
+            ->header('Access-Control-Allow-Headers', $this->getAllowedHeaders())
+            ->header('Access-Control-Expose-Headers', $this->getExposedHeaders())
+            ->header('Access-Control-Allow-Credentials', $this->getSupportsCredentials())
+            ->header('Access-Control-Max-Age', $this->getMaxAge());
+    }
 
-        // Handle preflight OPTIONS requests
-        if ($request->isMethod('OPTIONS')) {
-            $response = response('', 200);
-        }
+    $response = $next($request);
 
-        // Add CORS headers to the response
-        $response->headers->set('Access-Control-Allow-Origin', $this->getAllowedOrigins($request));
-        $response->headers->set('Access-Control-Allow-Methods', $this->getAllowedMethods());
-        $response->headers->set('Access-Control-Allow-Headers', $this->getAllowedHeaders());
-        $response->headers->set('Access-Control-Expose-Headers', $this->getExposedHeaders());
-        $response->headers->set('Access-Control-Allow-Credentials', $this->getSupportsCredentials());
-        $response->headers->set('Access-Control-Max-Age', $this->getMaxAge());
+    // Add CORS headers only to API responses
+    $response->headers->set('Access-Control-Allow-Origin', $this->getAllowedOrigins($request));
+    $response->headers->set('Access-Control-Allow-Methods', $this->getAllowedMethods());
+    $response->headers->set('Access-Control-Allow-Headers', $this->getAllowedHeaders());
+    $response->headers->set('Access-Control-Expose-Headers', $this->getExposedHeaders());
+    $response->headers->set('Access-Control-Allow-Credentials', $this->getSupportsCredentials());
+    $response->headers->set('Access-Control-Max-Age', $this->getMaxAge());
 
-        return $response;
+    return $response;
     }
 
     /**
@@ -57,10 +66,10 @@ class CorsMiddleware
 
         // Check if origin is in allowed origins list
         if (in_array('*', $allowedOrigins) || in_array($request->header('Origin', ''), $allowedOrigins)) {
-            return $request->header('Origin', '*');
+            return $request->header('Origin', '');
         }
 
-        return '*';
+        return '';
     }
 
     /**

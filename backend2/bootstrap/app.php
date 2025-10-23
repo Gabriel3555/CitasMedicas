@@ -3,7 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Middleware\HandleCors;
+use App\Http\Middleware\CorsMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,12 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->append(\App\Http\Middleware\CorsMiddleware::class);
-        $middleware->append(HandleCors::class);
-        $middleware->alias([
-            'jwt.auth' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
-            'jwt.refresh' => \Tymon\JWTAuth\Http\Middleware\RefreshToken::class,
-        ]);
-    })
+         $middleware->use([CorsMiddleware::class]);
+         $middleware->alias([
+             'jwt.auth' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
+             'jwt.refresh' => \Tymon\JWTAuth\Http\Middleware\RefreshToken::class,
+         ]);
+     })
     ->withExceptions(function (Exceptions $exceptions): void {
     })->create();

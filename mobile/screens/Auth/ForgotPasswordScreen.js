@@ -1,19 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import * as Animatable from 'react-native-animatable';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { login } from '../../apis/authApi';
+import { forgotPassword } from '../../apis/authApi';
 
-const LoginScreen = ({ navigation }) => {
+const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-
-  useEffect(() => {
-    // Login screen initialization
-  }, []);
+  const [emailSent, setEmailSent] = useState(false);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,46 +23,66 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
-  const validatePassword = (password) => {
-    if (!password) {
-      setPasswordError("La contraseña es requerida");
-      return false;
-    } else if (password.length < 6) {
-      setPasswordError("La contraseña debe tener al menos 6 caracteres");
-      return false;
-    } else {
-      setPasswordError("");
-      return true;
-    }
-  };
-
-  const handleLogin = async () => {
+  const handleForgotPassword = async () => {
     const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password);
 
-    if (!isEmailValid || !isPasswordValid) {
+    if (!isEmailValid) {
       return;
     }
 
     setLoading(true);
-    const result = await login(email, password);
+    const result = await forgotPassword(email);
     setLoading(false);
 
     if (result.success) {
-      await AsyncStorage.setItem('token', result.data.token);
-
-      const userRole = result.data.user.role;
-      if (userRole === 'paciente') {
-        navigation.replace("PacienteDashboard");
-      } else if (userRole === 'doctor') {
-        navigation.replace("DoctorDashboard");
-      } else {
-        navigation.replace("AdminDashboard");
-      }
+      setEmailSent(true);
     } else {
       Alert.alert('Error', result.error);
     }
   };
+
+  if (emailSent) {
+    return (
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+          <Animatable.View animation="fadeInDown" duration={800} style={styles.headerContainer}>
+            <Text style={styles.title}>🏥 Citas Médicas</Text>
+            <Text style={styles.subtitle}>Correo Enviado</Text>
+          </Animatable.View>
+
+          <Animatable.View animation="fadeInUp" duration={800} delay={200} style={styles.successContainer}>
+            <Animatable.View animation="bounceIn" duration={1000} delay={400}>
+              <Text style={styles.successIcon}>✅</Text>
+            </Animatable.View>
+
+            <Text style={styles.successTitle}>¡Correo enviado!</Text>
+            <Text style={styles.successText}>
+              Hemos enviado un enlace de recuperación a tu correo electrónico. Revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.
+            </Text>
+
+            <Animatable.View animation="pulse" duration={600} delay={800}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => navigation.navigate("Login")}
+              >
+                <Text style={styles.buttonText}>Volver al inicio de sesión</Text>
+              </TouchableOpacity>
+            </Animatable.View>
+
+            <TouchableOpacity
+              style={styles.linkContainer}
+              onPress={() => setEmailSent(false)}
+            >
+              <Text style={styles.link}>¿No recibiste el correo? Inténtalo de nuevo</Text>
+            </TouchableOpacity>
+          </Animatable.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -78,10 +92,14 @@ const LoginScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <Animatable.View animation="fadeInDown" duration={800} style={styles.headerContainer}>
           <Text style={styles.title}>🏥 Citas Médicas</Text>
-          <Text style={styles.subtitle}>Iniciar Sesión</Text>
+          <Text style={styles.subtitle}>Recuperar Contraseña</Text>
         </Animatable.View>
 
         <Animatable.View animation="fadeInUp" duration={800} delay={200} style={styles.formContainer}>
+          <Text style={styles.description}>
+            Ingresa tu dirección de correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+          </Text>
+
           <Animatable.View animation="slideInLeft" duration={600} delay={400} style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Email</Text>
             <TextInput
@@ -99,40 +117,21 @@ const LoginScreen = ({ navigation }) => {
             {emailError ? <Animatable.Text animation="shake" style={styles.errorText}>{emailError}</Animatable.Text> : null}
           </Animatable.View>
 
-          <Animatable.View animation="slideInRight" duration={600} delay={600} style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Contraseña</Text>
-            <TextInput
-              style={[styles.input, passwordError ? styles.inputError : null]}
-              placeholder="Tu contraseña"
-              secureTextEntry
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (passwordError) validatePassword(text);
-              }}
-            />
-            {passwordError ? <Animatable.Text animation="shake" style={styles.errorText}>{passwordError}</Animatable.Text> : null}
-          </Animatable.View>
-
-         <Animatable.View animation="pulse" duration={600} delay={1000}>
+          <Animatable.View animation="pulse" duration={600} delay={600}>
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleLogin}
+              onPress={handleForgotPassword}
               disabled={loading}
             >
               <Text style={styles.buttonText}>
-                {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                {loading ? 'Enviando...' : 'Enviar enlace de recuperación'}
               </Text>
             </TouchableOpacity>
           </Animatable.View>
 
-          <Animatable.View animation="fadeIn" duration={600} delay={1200} style={styles.footerContainer}>
-            <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-              <Text style={styles.link}>¿No tienes cuenta? Regístrate aquí</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")} style={styles.forgotPasswordContainer}>
-              <Text style={styles.link}>¿Olvidaste tu contraseña?</Text>
+          <Animatable.View animation="fadeIn" duration={600} delay={800} style={styles.footerContainer}>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+              <Text style={styles.link}>← Volver al inicio de sesión</Text>
             </TouchableOpacity>
           </Animatable.View>
         </Animatable.View>
@@ -178,6 +177,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  description: {
+    fontSize: 16,
+    color: '#6c757d',
+    textAlign: 'center',
+    marginBottom: 30,
+    lineHeight: 24,
   },
   inputContainer: {
     marginBottom: 20,
@@ -233,15 +239,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
   },
-  forgotPasswordContainer: {
-    marginTop: 20,
-    paddingVertical: 5,
-  },
   link: {
     color: '#007AFF',
     fontSize: 16,
     textDecorationLine: 'underline',
   },
+  linkContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  successContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  successIcon: {
+    fontSize: 64,
+    marginBottom: 20,
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#28a745',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  successText: {
+    fontSize: 16,
+    color: '#6c757d',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 30,
+  },
 });
 
-export default LoginScreen;
+export default ForgotPasswordScreen;
