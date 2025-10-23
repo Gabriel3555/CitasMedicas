@@ -10,17 +10,17 @@ class PasswordResetToken extends Model
     protected $primaryKey = 'email';
     protected $keyType = 'string';
     public $incrementing = false;
+    public $timestamps = false;
 
     protected $fillable = [
         'email',
         'token',
+        'created_at', // ← AGREGAR ESTO
     ];
 
-    protected $dates = [
-        'created_at',
+    protected $casts = [
+        'created_at' => 'datetime', // ← CAMBIAR DE $dates A $casts
     ];
-
-    public $timestamps = false;
 
     /**
       * Check if token is expired (tokens expire after 1 hour)
@@ -28,7 +28,7 @@ class PasswordResetToken extends Model
     public function isExpired()
     {
         if (!$this->created_at) {
-            return true; // If created_at is null, consider expired
+            return true;
         }
         return $this->created_at->addHour()->isPast();
     }

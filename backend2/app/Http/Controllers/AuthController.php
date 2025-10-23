@@ -361,6 +361,7 @@ class AuthController extends Controller
 
     public function resetPassword(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
             'token' => 'required|string',
@@ -408,37 +409,47 @@ class AuthController extends Controller
 
     public function showResetPasswordForm(Request $request)
     {
-        Log::info('Show reset password form request', ['token' => $request->query('token'), 'email' => $request->query('email')]);
+    $token = $request->query('token');
+    $email = $request->query('email');
 
-        $token = $request->query('token');
-        $email = $request->query('email');
+    Log::info('=== INICIO showResetPasswordForm ===', [
+        'token' => $token, 
+        'email' => $email,
+        'has_token' => !empty($token),
+        'has_email' => !empty($email)
+    ]);
 
-        if (!$token || !$email) {
-            Log::error('Invalid link for reset password');
-            return redirect('/')->with('error', 'Enlace inválido para restablecer contraseña');
-        }
+    if (!$token || !$email) {
+        Log::error('Invalid link - missing params');
+        return redirect('/')->with('error', 'Enlace inválido para restablecer contraseña');
+    }
 
-        // Verificar que el token existe y no ha expirado
-        $resetToken = PasswordResetToken::where('email', $email)
-            ->where('token', $token)
-            ->first();
+    $resetToken = PasswordResetToken::where('email', $email)
+        ->where('token', $token)
+        ->first();
 
-        if (!$resetToken) {
-            Log::error('Reset token not found', ['token' => $token, 'email' => $email]);
-            return redirect('/')->with('error', 'Token inválido o expirado');
-        }
+    Log::info('Token search result', [
+        'found' => $resetToken ? 'YES' : 'NO',
+        'token_data' => $resetToken
+    ]);
 
-        if ($resetToken->isExpired()) {
-            Log::error('Reset token expired', ['token' => $token, 'email' => $email]);
-            $resetToken->delete();
-            return redirect('/')->with('error', 'Token expirado. Solicita un nuevo enlace de recuperación');
-        }
+    if (!$resetToken) {
+        Log::error('Reset token not found in DB');
+        return redirect('/')->with('error', 'Token inválido o expirado');
+    }
 
-        Log::info('Reset form displayed successfully', ['token' => $token, 'email' => $email]);
-        return view('reset-password', [
-            'token' => $token,
-            'email' => $email
-        ]);
+    if ($resetToken->isExpired()) {
+        Log::error('Reset token expired');
+        $resetToken->delete();
+        return redirect('/')->with('error', 'Token expirado');
+    }
+
+    Log::info('=== MOSTRANDO VISTA reset-password ===');
+    
+    return view('reset-password', [
+        'token' => $token,
+        'email' => $email
+    ]);
     }
 
     public function resetPasswordWeb(Request $request)
@@ -496,7 +507,7 @@ class AuthController extends Controller
             $resetToken->delete();
 
             Log::info('Password reset successful');
-            return redirect('/')->with('success', 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.');
+            return redirect()->route('password.reset.success');
         } catch (\Exception $e) {
             Log::error('Exception in resetPasswordWeb: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()->back()
