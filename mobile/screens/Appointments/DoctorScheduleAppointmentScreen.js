@@ -61,12 +61,12 @@ const DoctorScheduleAppointmentScreen = ({ navigation }) => {
     }
 
     if (doctorSchedule && doctorSchedule.start_time && doctorSchedule.end_time) {
-      const appointmentTime = selectedTime.toTimeString().split(' ')[0].substring(0, 5);
-      const startTime = doctorSchedule.start_time.substring(0, 5);
-      const endTime = doctorSchedule.end_time.substring(0, 5);
+      const appointmentTime = selectedTime.toTimeString().split(' ')[0];
+      const startTime = doctorSchedule.start_time;
+      const endTime = doctorSchedule.end_time;
 
       if (appointmentTime < startTime || appointmentTime >= endTime) {
-        Alert.alert('Error', `La hora seleccionada está fuera de su horario laboral (${startTime} - ${endTime})`);
+        Alert.alert('Error', `La hora seleccionada está fuera de su horario laboral (${startTime.substring(0, 5)} - ${endTime.substring(0, 5)})`);
         return;
       }
     }
@@ -74,7 +74,7 @@ const DoctorScheduleAppointmentScreen = ({ navigation }) => {
     const citaData = {
       pacientes_id: selectedPaciente.id,
       fecha: selectedDate.toISOString().split('T')[0],
-      hora: selectedTime.toTimeString().split(' ')[0].substring(0, 5),
+      hora: selectedTime.toTimeString().split(' ')[0],
     };
 
     const result = await createCita(citaData);

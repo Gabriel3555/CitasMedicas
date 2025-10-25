@@ -9,7 +9,6 @@ import { getEspecialidades } from '../../apis/especialidadesApi';
 
 const AdminCitaCreateScreen = ({ navigation }) => {
   const formatDate = (date) => {
-    // Convertir fecha de JavaScript a formato YYYY-MM-DD para la API
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -154,9 +153,6 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   };
 
   const loadAvailableSlots = async (doctorId, date) => {
-    // Cargar los horarios disponibles para un doctor en una fecha específica
-    // El backend genera automáticamente slots de 30 minutos dentro del horario laboral
-    // y excluye los que ya están ocupados por otras citas
     try {
       if (!doctorId || !date) {
         setAvailableSlots([]);
@@ -194,7 +190,7 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   };
 
   const validateTime = (time) => {
-    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/;
     return timeRegex.test(time);
   };
 
