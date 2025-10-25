@@ -19,7 +19,7 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
     pacientes_id: '',
     doctor_id: '',
-    fecha: formatDate(new Date()),
+    fecha: formatDate(new Date(Date.now() + 24 * 60 * 60 * 1000)),
     hora: ''
   });
   const [pacientes, setPacientes] = useState([]);
@@ -34,7 +34,7 @@ const AdminCitaCreateScreen = ({ navigation }) => {
   const [loadingEspecialidades, setLoadingEspecialidades] = useState(true);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date(Date.now() + 24 * 60 * 60 * 1000));
   const [showSpecialtyModal, setShowSpecialtyModal] = useState(false);
 
   useEffect(() => {
@@ -207,7 +207,13 @@ const AdminCitaCreateScreen = ({ navigation }) => {
       }
 
       if (!validateDate(formData.fecha)) {
-        Alert.alert('Error', 'La fecha debe estar en formato YYYY-MM-DD y no puede ser anterior a hoy');
+        Alert.alert('Error', 'La fecha debe estar en formato YYYY-MM-DD y no puede ser hoy o anterior');
+        return;
+      }
+
+      const today = formatDate(new Date());
+      if (formData.fecha <= today) {
+        Alert.alert('Error', 'No puede agendar citas el día presente, solo el siguiente al presente');
         return;
       }
 
@@ -369,7 +375,7 @@ const AdminCitaCreateScreen = ({ navigation }) => {
           })()}
 
           <View style={styles.infoContainer}>
-            <Text style={styles.infoText}>💡 La fecha debe ser igual o posterior a hoy</Text>
+            <Text style={styles.infoText}>💡 La fecha debe ser posterior a hoy</Text>
             <Text style={styles.infoText}>💡 Las citas tienen una duración de 30 minutos</Text>
             <Text style={styles.infoText}>💡 Los horarios disponibles se generan automáticamente en intervalos de 30 minutos</Text>
             <Text style={styles.infoText}>💡 Se excluyen automáticamente los horarios ya ocupados</Text>
@@ -393,7 +399,7 @@ const AdminCitaCreateScreen = ({ navigation }) => {
           mode="date"
           display="default"
           onChange={handleDateChange}
-          minimumDate={new Date()}
+          minimumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)}
           maximumDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)}
         />
       )}

@@ -11,7 +11,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   const [specialties, setSpecialties] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date(Date.now() + 24 * 60 * 60 * 1000));
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -45,6 +45,10 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
   const onDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate) {
+      if (selectedDate.toDateString() === new Date().toDateString()) {
+        Alert.alert('Error', 'No puedes agendar citas el día presente, solo el siguiente al presente');
+        return;
+      }
       setSelectedDate(selectedDate);
     }
   };
@@ -211,7 +215,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
             mode="date"
             display="default"
             onChange={onDateChange}
-            minimumDate={new Date()}
+            minimumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)}
           />
         )}
 

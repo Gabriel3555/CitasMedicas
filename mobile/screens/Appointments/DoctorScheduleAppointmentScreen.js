@@ -8,7 +8,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 const DoctorScheduleAppointmentScreen = ({ navigation }) => {
   const [pacientes, setPacientes] = useState([]);
   const [selectedPaciente, setSelectedPaciente] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date(Date.now() + 24 * 60 * 60 * 1000));
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -35,6 +35,10 @@ const DoctorScheduleAppointmentScreen = ({ navigation }) => {
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date();
     setShowDatePicker(false);
+    if (currentDate.toDateString() === new Date().toDateString()) {
+      Alert.alert('Error', 'No puedes agendar citas el día presente, solo el siguiente al presente');
+      return;
+    }
     setSelectedDate(currentDate);
   };
 
@@ -157,7 +161,7 @@ const DoctorScheduleAppointmentScreen = ({ navigation }) => {
             mode="date"
             display="default"
             onChange={onDateChange}
-            minimumDate={new Date()}
+            minimumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)}
           />
         )}
 
