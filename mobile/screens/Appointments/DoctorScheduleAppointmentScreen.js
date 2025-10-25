@@ -110,6 +110,7 @@ const DoctorScheduleAppointmentScreen = ({ navigation }) => {
               setSelectedPaciente(paciente);
             }}
             style={styles.picker}
+            color="#000"
           >
             <Picker.Item label="Selecciona un paciente..." value="" />
             {pacientes.map(paciente => (
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     backgroundColor: "#f8f9fa"
   },
-  picker: { height: 50, width: '100%' },
+  picker: { height: 50, width: '100%', color: '#000' },
   pickerButton: {
     borderWidth: 1,
     borderColor: "#007AFF",

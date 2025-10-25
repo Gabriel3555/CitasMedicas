@@ -190,6 +190,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
+    color:'#000',
     borderColor: '#ddd',
     borderRadius: 12,
     padding: 16,
@@ -199,6 +200,7 @@ const styles = StyleSheet.create({
   inputError: {
     borderColor: '#dc3545',
     backgroundColor: '#fff5f5',
+    color: '#000',
   },
   errorText: {
     color: '#dc3545',

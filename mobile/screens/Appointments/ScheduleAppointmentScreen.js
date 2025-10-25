@@ -132,6 +132,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
               fetchDoctors(itemValue || null);
             }}
             style={styles.picker}
+            color="#000"
           >
             <Picker.Item label="Todas las especialidades..." value="" />
             {specialties.map(specialty => (
@@ -153,6 +154,7 @@ const ScheduleAppointmentScreen = ({ navigation }) => {
               setSelectedDoctor(doctor);
             }}
             style={styles.picker}
+            color="#000"
           >
             <Picker.Item label="Selecciona un doctor..." value="" />
             {doctors.map(doctor => (
@@ -240,7 +242,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     backgroundColor: "#f8f9fa"
   },
-  picker: { height: 50, width: '100%' },
+  picker: { height: 50, width: '100%', color: '#000' },
   scheduleInfo: {
     fontSize: 14,
     color: "#666",
